@@ -58,6 +58,8 @@ let
       ;
     walkerWidth = toString config.omanix.walker.width;
     walkerHeight = toString config.omanix.walker.height;
+    menuWidth = toString (if config.omanix.monitor.scale == "1" then 369 else 295);
+    menuMaxHeight = toString (if config.omanix.monitor.scale == "1" then 788 else 630);
   };
 in
 {

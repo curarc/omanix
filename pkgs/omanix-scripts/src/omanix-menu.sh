@@ -3,7 +3,7 @@
 menu_cmd() {
   local placeholder="$1"
   local options="$2"
-  echo -e "$options" | "$WALKER_BIN" --dmenu --width 295 --minheight 1 --maxheight 630 --placeholder "$placeholder…"
+  echo -e "$options" | "$WALKER_BIN" --dmenu --width "$OMANIX_MENU_WIDTH" --minheight 1 --maxheight "$OMANIX_MENU_MAX_HEIGHT" --placeholder "$placeholder…"
 }
 
 back_to() { "$1"; }
