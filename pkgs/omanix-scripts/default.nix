@@ -52,6 +52,8 @@
   # Newline-separated wallpaper paths for cycling
   wallpaperList ? "",
   monitorMap ? "",
+  walkerWidth ? "644",
+  walkerHeight ? "300",
 }:
 
 let
@@ -123,6 +125,8 @@ let
       ];
       envs = {
         WALKER_BIN = "${walker}/bin/walker";
+        OMANIX_WALKER_WIDTH = walkerWidth;
+        OMANIX_WALKER_HEIGHT = walkerHeight;
       };
     }
     {

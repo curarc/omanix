@@ -9,6 +9,15 @@ let
   theme = config.omanix.activeTheme;
   elephantPkg = inputs.elephant.packages.${pkgs.system}.default;
 
+  scale = config.omanix.monitor.scale;
+  walkerWidth = if scale == "1" then 805 else 644;
+  walkerHeight = if scale == "1" then 375 else 300;
+  walkerFontSize = if scale == "1" then "22px" else "18px";
+  walkerItemPadding = if scale == "1" then "18px 0" else "14px 0";
+  walkerBoxPadding = if scale == "1" then "25px" else "20px";
+  walkerInputPadding = if scale == "1" then "12px" else "10px";
+  walkerItemBoxPadding = if scale == "1" then "18px" else "14px";
+
   styleCss = ''
     @define-color selected-text ${theme.colors.accent};
     @define-color text ${theme.colors.foreground};
@@ -21,7 +30,7 @@ let
 
     * {
       font-family: '${config.omanix.font}';
-      font-size: 18px;
+      font-size: ${walkerFontSize};
       color: @text;
     }
 
@@ -32,13 +41,13 @@ let
 
     .box-wrapper {
       background: alpha(@base, 0.95);
-      padding: 20px;
+      padding: ${walkerBoxPadding};
       border: 2px solid @border;
     }
 
     .search-container {
       background: @base;
-      padding: 10px;
+      padding: ${walkerInputPadding};
     }
 
     .input placeholder { opacity: 0.5; }
@@ -52,11 +61,11 @@ let
       color: @selected-text;
     }
 
-    .item-box { padding-left: 14px; }
+    .item-box { padding-left: ${walkerItemBoxPadding}; }
 
     .item-text-box {
       all: unset;
-      padding: 14px 0;
+      padding: ${walkerItemPadding};
     }
 
     .item-subtext {
@@ -88,7 +97,24 @@ let
   '';
 in
 {
-  programs.walker = {
+  options.omanix.walker = {
+    width = lib.mkOption {
+      type = lib.types.int;
+      default = walkerWidth;
+      readOnly = true;
+      internal = true;
+      description = "Resolved walker window width.";
+    };
+    height = lib.mkOption {
+      type = lib.types.int;
+      default = walkerHeight;
+      readOnly = true;
+      internal = true;
+      description = "Resolved walker window height.";
+    };
+  };
+
+  config.programs.walker = {
     enable = true;
     runAsService = true;
 
@@ -100,9 +126,9 @@ in
       close_when_open = true;
       click_to_close = true;
 
-      width = 644;
-      maxheight = 300;
-      minheight = 300;
+      width = walkerWidth;
+      maxheight = walkerHeight;
+      minheight = walkerHeight;
 
       keybinds.quick_activate = [ ];
 
@@ -178,14 +204,14 @@ in
     };
   };
 
-  systemd.user.services.walker = lib.mkIf config.programs.walker.runAsService {
+  config.systemd.user.services.walker = lib.mkIf config.programs.walker.runAsService {
     Service.Environment = [
       "PATH=${elephantPkg}/bin:/etc/profiles/per-user/${config.home.username}/bin:/run/current-system/sw/bin:${config.home.homeDirectory}/.nix-profile/bin"
       "XDG_DATA_DIRS=${config.home.homeDirectory}/.nix-profile/share:/etc/profiles/per-user/${config.home.username}/share:/run/current-system/sw/share:${config.home.homeDirectory}/.local/share:/usr/local/share:/usr/share"
     ];
   };
 
-  xdg.configFile = {
+  config.xdg.configFile = {
     "walker/themes/omanix-default/style.css".text = styleCss;
     "walker/themes/omanix-default/layout.xml".source = ../../../assets/branding/walker-layout.xml;
   };

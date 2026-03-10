@@ -56,6 +56,8 @@ let
       wallpaperList
       monitorMap
       ;
+    walkerWidth = toString config.omanix.walker.width;
+    walkerHeight = toString config.omanix.walker.height;
   };
 in
 {

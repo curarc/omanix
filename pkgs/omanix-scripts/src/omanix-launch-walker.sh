@@ -16,4 +16,4 @@ fi
 # 2. Launch Walker with specific Omanix dimensions
 # Functional Parity: Uses the exact dimensions from the original script
 # We use the WALKER_BIN variable injected by the Nix wrapper
-exec "${WALKER_BIN:-walker}" --width 644 --maxheight 300 --minheight 300 "$@"
+exec "${WALKER_BIN:-walker}" --width "$OMANIX_WALKER_WIDTH" --maxheight "$OMANIX_WALKER_HEIGHT" --minheight "$OMANIX_WALKER_HEIGHT" "$@"
