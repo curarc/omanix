@@ -2,6 +2,8 @@
 let
   theme = config.omanix.activeTheme;
   inherit (theme) colors;
+  scale = config.omanix.monitor.scale;
+  fontSize = if scale == "1" then 13 else 10;
 in
 {
   programs.ghostty = {
@@ -21,7 +23,7 @@ in
       mouse-scroll-multiplier = 1.0;
       font-family = config.omanix.font;
       font-style = "Regular";
-      font-size = 10;
+      font-size = fontSize;
 
       inherit (colors) background;
       inherit (colors) foreground;
