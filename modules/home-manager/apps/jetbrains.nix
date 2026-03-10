@@ -26,7 +26,6 @@ let
     }:
     let
       # Extract the IDE into its own derivation so it has a stable /nix/store path.
-      # buildFHSEnv mounts /nix/store into the sandbox, so this path is accessible.
       unwrapped = pkgs.stdenv.mkDerivation {
         pname = "${pname}-unwrapped";
         inherit version;
@@ -49,28 +48,57 @@ let
     pkgs.buildFHSEnv {
       name = pname;
 
-      # Reference the store path directly — /nix/store is visible inside the FHS sandbox
       runScript = "${unwrapped}/bin/${launcher}";
 
-      # Pass through Wayland and cursor env vars so the IDE works correctly
-      # when launched from desktop entries (e.g. Walker) which don't inherit
-      # the full shell environment.
       profile = ''
         export XCURSOR_SIZE=''${XCURSOR_SIZE:-24}
         export XCURSOR_THEME=''${XCURSOR_THEME:-default}
       '';
 
-      targetPkgs = p: with p; [
-        zlib glib gtk3 gtk4 libGL freetype fontconfig dbus nss nspr
-        alsa-lib cups libdrm mesa vulkan-loader
-        wayland libxkbcommon
-        xorg.libX11 xorg.libXext xorg.libXi xorg.libXrender xorg.libXtst
-        xorg.libXrandr xorg.libXcursor xorg.libXdamage xorg.libXfixes
-        xorg.libXcomposite xorg.libXinerama xorg.libxcb
-        libsecret e2fsprogs libnotify udev at-spi2-atk cairo pango
-        expat gdk-pixbuf
-        git coreutils
-      ];
+      targetPkgs =
+        p: with p; [
+          zlib
+          glib
+          gtk3
+          gtk4
+          libGL
+          freetype
+          fontconfig
+          dbus
+          nss
+          nspr
+          alsa-lib
+          cups
+          libdrm
+          mesa
+          vulkan-loader
+          wayland
+          libxkbcommon
+          libx11
+          libXext
+          libxi
+          libxrender
+          libxtst
+          libxrandr
+          libxcursor
+          libxdamage
+          libxfixes
+          libxcomposite
+          libxinerama
+          libxcb
+          # ---
+          libsecret
+          e2fsprogs
+          libnotify
+          udev
+          at-spi2-atk
+          cairo
+          pango
+          expat
+          gdk-pixbuf
+          git
+          coreutils
+        ];
 
       extraInstallCommands = ''
         # .desktop entry
@@ -116,19 +144,20 @@ let
   };
 
   # ---------------------------------------------------------------------------
-  # Stable helpers (unchanged from original)
+  # Stable helpers
   # ---------------------------------------------------------------------------
-  mkMajorMinor = pkg:
-    let parts = lib.splitString "." pkg.version;
-    in "${builtins.elemAt parts 0}.${builtins.elemAt parts 1}";
+  mkMajorMinor =
+    pkg:
+    let
+      parts = lib.splitString "." pkg.version;
+    in
+    "${builtins.elemAt parts 0}.${builtins.elemAt parts 1}";
 
   baseVmOptions = [
     "-Dawt.toolkit.name=WLToolkit"
   ];
 
-  mkVmOptionsContent = extraOpts: lib.concatStringsSep "\n" (
-    baseVmOptions ++ extraOpts
-  );
+  mkVmOptionsContent = extraOpts: lib.concatStringsSep "\n" (baseVmOptions ++ extraOpts);
 
   # ---------------------------------------------------------------------------
   # Resolved packages (EAP or stable)
@@ -163,9 +192,6 @@ let
 
 in
 {
-  # ---------------------------------------------------------------------------
-  # Options
-  # ---------------------------------------------------------------------------
   options.omanix.apps.jetbrains = {
     intellij = {
       enable = lib.mkEnableOption "IntelliJ IDEA";
@@ -174,7 +200,10 @@ in
         type = lib.types.listOf lib.types.str;
         default = [ ];
         description = "Extra JVM options for IntelliJ IDEA (e.g. [\"-Xmx4g\"])";
-        example = [ "-Xmx4g" "-Xms1g" ];
+        example = [
+          "-Xmx4g"
+          "-Xms1g"
+        ];
       };
     };
     rustrover = {
@@ -184,16 +213,15 @@ in
         type = lib.types.listOf lib.types.str;
         default = [ ];
         description = "Extra JVM options for RustRover (e.g. [\"-Xmx4g\"])";
-        example = [ "-Xmx4g" "-Xms1g" ];
+        example = [
+          "-Xmx4g"
+          "-Xms1g"
+        ];
       };
     };
   };
 
-  # ---------------------------------------------------------------------------
-  # Config
-  # ---------------------------------------------------------------------------
   config = lib.mkMerge [
-    # --- Assertions: EAP requires buildNumber + hash, and requires enable ---
     {
       assertions = [
         {
@@ -223,15 +251,12 @@ in
       ];
     }
 
-    # --- Package installation ---
     (lib.mkIf (cfg.intellij.enable || cfg.rustrover.enable) {
       home.packages = lib.flatten [
         (lib.optional cfg.intellij.enable intellijPkg)
         (lib.optional cfg.rustrover.enable rustRoverPkg)
       ];
 
-      # vmoptions only for stable builds — EAP has native Wayland, no workaround needed.
-      # Users can still pass extraVmOptions for stable via the existing option.
       xdg.configFile = lib.mkMerge [
         (lib.mkIf (cfg.intellij.enable && !cfg.intellij.eap.enable) {
           "JetBrains/IntelliJIdea${mkMajorMinor pkgs.jetbrains.idea}/idea64.vmoptions" = {
