@@ -194,8 +194,7 @@ in
             signal = 8;
           };
           clock = {
-            format = "{:%a %H:%M}";
-            format-alt = "{:%d %b %Y}";
+            format = "{:%A, %d %B %H:%M}";
             tooltip-format = "<tt><small>{calendar}</small></tt>";
           };
 
