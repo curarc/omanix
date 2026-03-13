@@ -115,5 +115,6 @@
     zsh-completions
     _7zz
     file
+    yt-dlp
   ];
 }
