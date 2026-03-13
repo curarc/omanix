@@ -35,6 +35,11 @@
       url = "github:aashish-thapa/wlctl";
       inputs.nixpkgs.follows = "nixpkgs";
     };
+
+    yt-dlp-src = {
+      url = "github:yt-dlp/yt-dlp";
+      flake = false;
+    };
   };
 
   outputs =
@@ -64,6 +69,12 @@
         omanix-screensaver = final.callPackage ./pkgs/omanix-screensaver { };
         omanix-scripts = final.callPackage ./pkgs/omanix-scripts { };
         wlctl = inputs.wlctl.packages.${prev.system}.default;
+
+        yt-dlp = prev.yt-dlp.overrideAttrs (oldAttrs: {
+          src = inputs.yt-dlp-src;
+          version = "master";
+          doCheck = false;
+        });
       };
 
       nixosModules.default =
