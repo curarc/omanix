@@ -131,11 +131,11 @@
         ]
       },
       "locked": {
-        "lastModified": 1773422513,
-        "narHash": "sha256-MPjR48roW7CUMU6lu0+qQGqj92Kuh3paIulMWFZy+NQ=",
+        "lastModified": 1773810247,
+        "narHash": "sha256-6Vz1Thy/1s7z+Rq5OfkWOBAdV4eD+OrvDs10yH6xJzQ=",
         "owner": "nix-community",
         "repo": "home-manager",
-        "rev": "ef12a9a2b0f77c8fa3dda1e7e494fca668909056",
+        "rev": "d47357a4c806d18a3e853ad2699eaec3c01622e7",
         "type": "github"
       },
       "original": {
@@ -568,11 +568,11 @@
     },
     "nixpkgs_4": {
       "locked": {
-        "lastModified": 1773282481,
-        "narHash": "sha256-b/GV2ysM8mKHhinse2wz+uP37epUrSE+sAKXy/xvBY4=",
+        "lastModified": 1773734432,
+        "narHash": "sha256-IF5ppUWh6gHGHYDbtVUyhwy/i7D261P7fWD1bPefOsw=",
         "owner": "NixOS",
         "repo": "nixpkgs",
-        "rev": "fe416aaedd397cacb33a610b33d60ff2b431b127",
+        "rev": "cda48547b432e8d3b18b4180ba07473762ec8558",
         "type": "github"
       },
       "original": {
@@ -632,7 +632,8 @@
         "silentSDDM": "silentSDDM",
         "spotatui": "spotatui",
         "walker": "walker",
-        "wlctl": "wlctl"
+        "wlctl": "wlctl",
+        "yt-dlp-src": "yt-dlp-src"
       }
     },
     "silentSDDM": {
@@ -658,11 +659,11 @@
     "spotatui": {
       "flake": false,
       "locked": {
-        "lastModified": 1773405175,
-        "narHash": "sha256-xSBUcB4zN2NZND8xE/M6Y5dhXCRR6haf+/hhf/f3YAA=",
+        "lastModified": 1773843454,
+        "narHash": "sha256-g1rOj9hUtg2RpyC45wC52WchlVWUL4Hh3KAS6ooI3bU=",
         "owner": "LargeModGames",
         "repo": "spotatui",
-        "rev": "40941f4dfcb941b3013131a6dd869e329cede009",
+        "rev": "d62697030b43a70854033ebfe9e6d5999899c657",
         "type": "github"
       },
       "original": {
@@ -740,11 +741,11 @@
         "systems": "systems_4"
       },
       "locked": {
-        "lastModified": 1773212610,
-        "narHash": "sha256-jYvDe44MLx444BfiO1EtCKgHoKfXeIG1DvAw7P2qCrY=",
+        "lastModified": 1773675699,
+        "narHash": "sha256-GrormZ2KxchtCLuO90+5fioEQmlUCKBIil0Mzr9w0Iw=",
         "owner": "abenz1267",
         "repo": "walker",
-        "rev": "04ec7aa1b0cf2524370d99d43283c3050178a813",
+        "rev": "d2702235710da3d7daf55c912ca7534261cf20f5",
         "type": "github"
       },
       "original": {
@@ -811,6 +812,22 @@
       "original": {
         "owner": "hyprwm",
         "repo": "xdg-desktop-portal-hyprland",
+        "type": "github"
+      }
+    },
+    "yt-dlp-src": {
+      "flake": false,
+      "locked": {
+        "lastModified": 1773789911,
+        "narHash": "sha256-A4LUCuKCjpVAOJ8jNoYaC3mRCiKH0/wtcsle0YfZyTA=",
+        "owner": "yt-dlp",
+        "repo": "yt-dlp",
+        "rev": "7fd74d10097833ebce0cb162e0ccf7825de9b768",
+        "type": "github"
+      },
+      "original": {
+        "owner": "yt-dlp",
+        "repo": "yt-dlp",
         "type": "github"
       }
     }
