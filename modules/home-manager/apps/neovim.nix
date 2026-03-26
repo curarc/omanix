@@ -137,6 +137,9 @@ in
       text = ''
         return {
           {
+          { "mfussenegger/nvim-dap", config = function() end },
+          { "rcarriga/nvim-dap-ui", enabled = false },
+          { "theHamsta/nvim-dap-virtual-text", enabled = false },
             "GustavEikaas/easy-dotnet.nvim",
             dependencies = {
               "nvim-lua/plenary.nvim",
