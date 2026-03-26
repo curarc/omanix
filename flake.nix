@@ -9,11 +9,11 @@
       inputs.nixpkgs.follows = "nixpkgs";
     };
 
-    hyprland.url = "github:hyprwm/Hyprland/v0.53.3";
+    hyprland.url = "github:hyprwm/Hyprland/v0.54.2";
 
     nix-colors.url = "github:misterio77/nix-colors";
 
-    lazyvim.url = "github:pfassina/lazyvim-nix/v15.13.0";
+    lazyvim.url = "github:pfassina/lazyvim-nix/v15.14.0";
 
     elephant.url = "github:abenz1267/elephant";
 

@@ -72,6 +72,9 @@ in
             installDependencies = false;
             installRuntimeDependencies = false;
           };
+          # NOTE: lang.dotnet is intentionally NOT listed here.
+          # We skip the LazyVim dotnet extra (which uses OmniSharp) and instead
+          # use easy-dotnet.nvim below, which ships with Roslyn LSP.
         };
       };
 
@@ -129,5 +132,37 @@ in
         },
       }
     '';
+
+    xdg.configFile."nvim/lua/plugins/easy-dotnet.lua" = lib.mkIf lang.dotnet.enable {
+      text = ''
+        return {
+          {
+            "GustavEikaas/easy-dotnet.nvim",
+            dependencies = {
+              "nvim-lua/plenary.nvim",
+              "mfussenegger/nvim-dap",
+              "nvim-telescope/telescope.nvim",
+            },
+            ft = { "cs", "fsharp", "vb" },
+            config = function()
+              require("easy-dotnet").setup({
+                lsp = {
+                  enabled = true,
+                  roslynator_enabled = true,
+                  easy_dotnet_analyzer_enabled = true,
+                  auto_refresh_codelens = true,
+                },
+                debugger = {
+                  -- point at the nix-installed netcoredbg binary directly
+                  -- so easy-dotnet doesn't try to download its own copy
+                  bin_path = "${pkgs.netcoredbg}/bin/netcoredbg",
+                  auto_register_dap = true,
+                },
+              })
+            end,
+          },
+        }
+      '';
+    };
   };
 }

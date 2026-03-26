@@ -28,6 +28,7 @@ in
     tailwind.enable = lib.mkEnableOption "Tailwind CSS tools";
     json.enable = lib.mkEnableOption "JSON tools";
     dart.enable = lib.mkEnableOption "Dart/Flutter toolchain";
+    dotnet.enable = lib.mkEnableOption "dotnet toolchain";
   };
 
   config = {
@@ -104,6 +105,13 @@ in
 
         (lib.optionals cfg.dart.enable [
           flutter
+        ])
+
+        (lib.optionals cfg.dotnet.enable [
+          dotnet-sdk
+          roslyn-ls
+          netcoredbg
+          csharpier
         ])
       ];
   };

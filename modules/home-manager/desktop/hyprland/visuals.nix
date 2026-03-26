@@ -10,9 +10,11 @@ let
   cfg = config.omanix;
 
   # If scale is a number > 1, use GDK_SCALE=2; otherwise GDK_SCALE=1
-  scaleNum = let
-    parsed = builtins.tryEval (builtins.fromJSON cfg.monitor.scale);
-  in if parsed.success then parsed.value else 1.0;
+  scaleNum =
+    let
+      parsed = builtins.tryEval (builtins.fromJSON cfg.monitor.scale);
+    in
+    if parsed.success then parsed.value else 1.0;
   gdkScale = if scaleNum > 1 then "2" else "1";
 in
 {
@@ -26,7 +28,7 @@ in
 
       Example:
         omanix.hyprland.extraSettings = {
-          dwindle.single_window_aspect_ratio = "1 1";
+          layout.single_window_aspect_ratio = "1 1";
           general.allow_tearing = true;
           decoration.rounding = 10;
           windowrule = [

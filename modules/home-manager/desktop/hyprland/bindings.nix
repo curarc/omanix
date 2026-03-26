@@ -103,7 +103,7 @@ in
         "$mainMod, W, Close Window, killactive"
         "CTRL ALT, DELETE, Close All Windows, exec, omanix-hyprland-window-close-all"
 
-        "$mainMod, J, Toggle Split Direction, togglesplit"
+        "$mainMod, J, Toggle Split Direction, layoutmsg, togglesplit"
         "$mainMod, P, Toggle Pseudo-tile, pseudo"
         "$mainMod, T, Toggle Floating, togglefloating"
         "$mainMod, F, Fullscreen, fullscreen, 0"
