@@ -103,7 +103,7 @@ in
         "$mainMod, W, Close Window, killactive"
         "CTRL ALT, DELETE, Close All Windows, exec, omanix-hyprland-window-close-all"
 
-        "$mainMod, J, Toggle Split Direction, layoutmsg, togglesplit"
+        "$mainMod, J, Toggle Split Direction, togglesplit"
         "$mainMod, P, Toggle Pseudo-tile, pseudo"
         "$mainMod, T, Toggle Floating, togglefloating"
         "$mainMod, F, Fullscreen, fullscreen, 0"
@@ -259,15 +259,10 @@ in
         "$mainMod CTRL, L, Lock Screen, exec, omanix-lock-screen"
       ]
 
-      # Spotatui music binding (only when enabled)
       ++ (
         if cfg.apps.spotify.enable then
           [
             "$mainMod SHIFT, M, Open Music Player, exec, omanix-launch-or-focus spotify spotify"
-          ]
-        else if cfg.apps.spotatui.enable then
-          [
-            "$mainMod SHIFT, M, Open Music Player, exec, omanix-launch-or-focus-tui spotatui"
           ]
         else
           [ ]

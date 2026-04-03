@@ -22,11 +22,6 @@
       inputs.elephant.follows = "elephant";
     };
 
-    spotatui = {
-      url = "github:LargeModGames/spotatui";
-      flake = false;
-    };
-
     silentSDDM = {
       url = "github:uiriansan/SilentSDDM";
       inputs.nixpkgs.follows = "nixpkgs";

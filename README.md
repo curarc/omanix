@@ -195,7 +195,7 @@ omanix.apps = {
   jetbrains.rustrover.enable = true;
   obsidian.enable = true;
   whatsapp.enable = true;
-  spotatui.enable = true;     # Spotify TUI
+  spotify.enable = true;     # Spotify
   obs.enable = true;
   neovim.enable = true;       # This one defaults to true
 };

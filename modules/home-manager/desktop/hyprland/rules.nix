@@ -71,10 +71,6 @@ in
         # ─────────────────────────────────────────────────────────────────
         "tag +terminal, match:class (Alacritty|kitty|com.mitchellh.ghostty)"
 
-        # Spotatui - Spotify TUI (larger window for better experience)
-        "tag +floating-window, match:class ^(org\\.omanix\\.spotatui)$"
-        "size 1000 700, match:class ^(org\\.omanix\\.spotatui)$"
-
         # ─────────────────────────────────────────────────────────────────
         # JetBrains IDEs
         # ─────────────────────────────────────────────────────────────────

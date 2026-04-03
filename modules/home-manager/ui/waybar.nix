@@ -188,7 +188,6 @@ in
             format-paused = "{status_icon} <i>{title} - {artist}</i>";
             player-icons = {
               default = "";
-              spotatui = "";
               spotify = "";
             };
             status-icons = {
