@@ -88,9 +88,9 @@ in
 
         (lib.optionals cfg.typescript.enable [
           nodejs
-          nodePackages.typescript
-          nodePackages.typescript-language-server
-          nodePackages.prettier
+          typescript
+          typescript-language-server
+          prettier
           vscode-langservers-extracted
           emmet-language-server
         ])
