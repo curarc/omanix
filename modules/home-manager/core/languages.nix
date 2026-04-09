@@ -108,7 +108,9 @@ in
         ])
 
         (lib.optionals cfg.dotnet.enable [
-          dotnet-sdk
+          (dotnetCorePackages.combinePackages [
+            dotnetCorePackages.sdk_10_0
+          ])
           roslyn-ls
           netcoredbg
           csharpier
