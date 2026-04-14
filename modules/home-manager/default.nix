@@ -10,6 +10,7 @@
     ./core/languages.nix
     ./apps/firefox.nix
     ./apps/obs-studio.nix
+    ./apps/ai.nix
     ./apps/jetbrains.nix
     ./apps/neovim.nix
     ./apps/spotify.nix
