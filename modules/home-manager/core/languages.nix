@@ -58,7 +58,6 @@ in
         (lib.optionals cfg.go.enable [
           go
           gopls
-          gotools
           golangci-lint
           delve
           gomodifytags
