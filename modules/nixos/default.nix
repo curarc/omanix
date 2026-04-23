@@ -6,6 +6,7 @@ let
 in
 {
   imports = [
+    ./hyprland.nix
     ./login.nix
     ./steam.nix
     ./libreoffice.nix

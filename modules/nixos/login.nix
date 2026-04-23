@@ -14,5 +14,8 @@ in
       enable = true;
       theme = "catppuccin-mocha";
     };
+
+    # Ensure SDDM always falls back to plain hyprland, not uwsm-managed session
+    services.displayManager.defaultSession = "hyprland";
   };
 }
