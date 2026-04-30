@@ -1,9 +1,30 @@
-{ config, lib, ... }:
+{ config, lib, pkgs, ... }:
 let
   cfg = config.omanix;
   osdClient = ''swayosd-client --monitor "$(hyprctl monitors -j | jq -r '.[] | select(.focused == true).name')"'';
 in
 {
+  options.omanix = {
+    browser = {
+      package = lib.mkOption {
+        type = lib.types.package;
+        default = pkgs.firefox;
+        defaultText = lib.literalExpression "pkgs.firefox";
+        description = "The browser package to use.";
+      };
+      bin = lib.mkOption {
+        type = lib.types.str;
+        default = "firefox";
+        description = "Executable name within the browser package's bin directory.";
+      };
+      privateFlag = lib.mkOption {
+        type = lib.types.str;
+        default = "--private-window";
+        description = "CLI flag to open a private/incognito browser window.";
+      };
+    };
+  };
+
   options.omanix.hyprland = {
     extraBindings = lib.mkOption {
       type = lib.types.listOf lib.types.str;
@@ -71,7 +92,8 @@ in
       # ═══════════════════════════════════════════════════════════════════
       "$terminal" = "ghostty --working-directory=\"$(omanix-cmd-terminal-cwd)\"";
       "$fileManager" = "nautilus --new-window \"$(omanix-cmd-terminal-cwd)\"";
-      "$browser" = "omanix-launch-browser";
+      "$browser" = "${cfg.browser.package}/bin/${cfg.browser.bin}";
+      "$browserPrivate" = "${cfg.browser.package}/bin/${cfg.browser.bin} ${cfg.browser.privateFlag}";
 
       # ═══════════════════════════════════════════════════════════════════
       # BINDINGS WITH DESCRIPTIONS (bindd)
@@ -84,7 +106,7 @@ in
         "$mainMod, RETURN, Open Terminal, exec, $terminal"
         "$mainMod SHIFT, F, Open File Manager, exec, $fileManager"
         "$mainMod SHIFT, B, Open Browser, exec, $browser"
-        "$mainMod SHIFT ALT, B, Open Private Browser, exec, omanix-launch-browser --private"
+        "$mainMod SHIFT ALT, B, Open Private Browser, exec, $browserPrivate"
         "$mainMod SHIFT, N, Open Neovim, exec, $terminal -e nvim"
         "$mainMod SHIFT, D, Open Lazydocker, exec, $terminal -e lazydocker"
         "$mainMod SHIFT, O, Open Obsidian, exec, obsidian -disable-gpu"
@@ -147,12 +169,6 @@ in
         "$mainMod SHIFT, bracketleft, Window to Prev Monitor, movewindow, mon:-1"
 
         # ─────────────────────────────────────────────────────────────────
-        # Scratchpad
-        # ─────────────────────────────────────────────────────────────────
-        "$mainMod, S, Toggle Scratchpad, togglespecialworkspace, scratchpad"
-        "$mainMod ALT, S, Send to Scratchpad, movetoworkspacesilent, special:scratchpad"
-
-        # ─────────────────────────────────────────────────────────────────
         # Workspace Navigation
         # ─────────────────────────────────────────────────────────────────
         "$mainMod, TAB, Next Workspace, workspace, e+1"
@@ -206,7 +222,7 @@ in
         # ─────────────────────────────────────────────────────────────────
         # Aesthetics
         # ─────────────────────────────────────────────────────────────────
-        "$mainMod SHIFT, SPACE, Toggle Waybar, exec, omanix-toggle-waybar"
+        "$mainMod SHIFT, SPACE, Toggle Waybar, exec, bash -c 'systemctl --user is-active --quiet waybar && systemctl --user stop waybar || systemctl --user start waybar'"
         "$mainMod CTRL, SPACE, Next Wallpaper, exec, omanix-theme-bg-next"
         "$mainMod, BACKSPACE, Smart Delete Line, exec, omanix-smart-delete"
         "$mainMod CTRL, N, Toggle Opacity, exec, hyprctl dispatch setprop active opaque toggle"
@@ -248,9 +264,9 @@ in
         # ─────────────────────────────────────────────────────────────────
         # Control Panels
         # ─────────────────────────────────────────────────────────────────
-        "$mainMod CTRL, A, Audio Settings, exec, omanix-launch-audio"
-        "$mainMod CTRL, B, Bluetooth Settings, exec, omanix-launch-bluetooth"
-        "$mainMod CTRL, W, WiFi Settings, exec, omanix-launch-wifi"
+        "$mainMod CTRL, A, Audio Settings, exec, pavucontrol"
+        "$mainMod CTRL, B, Bluetooth Settings, exec, omanix-launch-or-focus-tui bluetui"
+        "$mainMod CTRL, W, WiFi Settings, exec, omanix-launch-or-focus-tui wlctl"
         "$mainMod CTRL, T, System Monitor, exec, omanix-launch-tui btop"
 
         # ─────────────────────────────────────────────────────────────────

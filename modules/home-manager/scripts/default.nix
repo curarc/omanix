@@ -7,8 +7,6 @@
   ...
 }:
 let
-  defaultBrowser = if config.programs.firefox.enable then "firefox.desktop" else "chromium.desktop";
-
   availableThemes = builtins.attrNames omanixLib.themes;
   themeListFormatted = builtins.concatStringsSep "\\n" (map (t: "- ${t}") availableThemes);
 
@@ -38,7 +36,6 @@ let
   );
 
   omanixScripts = pkgs.omanix-scripts.override {
-    browserFallback = defaultBrowser;
     walker = inputs.walker.packages.${pkgs.stdenv.hostPlatform.system}.default;
     inherit
       themesJson
@@ -69,6 +66,7 @@ in
 
   home.packages = with pkgs; [
     omanixScripts
+    config.omanix.browser.package
 
     # ─────────────────────────────────────────────────────────────────
     # Script runtime dependencies (used by omanix-scripts at runtime)

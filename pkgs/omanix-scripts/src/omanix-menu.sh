@@ -98,9 +98,9 @@ show_style_menu() {
 show_setup_menu() {
   CHOICE=$(menu_cmd "Setup" "󰕾  Audio\n󰖩  Wifi\n󰂯  Bluetooth\n󰋁  Hyprland\n󰒲  Hypridle\n󰌾  Hyprlock\n󰍜  Waybar\n󰌧  Walker")
   case "$CHOICE" in
-    *Audio*)     omanix-launch-audio ;;
-    *Wifi*)      omanix-launch-wifi ;;
-    *Bluetooth*) omanix-launch-bluetooth ;;
+    *Audio*)     pavucontrol & ;;
+    *Wifi*)      omanix-launch-or-focus-tui wlctl ;;
+    *Bluetooth*) omanix-launch-or-focus-tui bluetui ;;
     *Hyprland*)  omanix-show-setup-help hyprland ;;
     *Hypridle*)  omanix-show-setup-help hypridle ;;
     *Hyprlock*)  omanix-show-setup-help hyprlock ;;

@@ -35,8 +35,6 @@
   hypridle,
   localsend,
   fzf,
-  # Configurable options
-  browserFallback ? "firefox.desktop",
   # Data files injected by the module
   themesJson ? null,
   docStylePreview ? null,
@@ -72,16 +70,6 @@ let
   # it needs $out/bin on PATH (for calling sibling scripts).
   # ═══════════════════════════════════════════════════════════════════
   scripts = [
-    {
-      name = "omanix-launch-browser";
-      deps = [
-        bash
-        xdg-utils
-      ];
-      envs = {
-        OMANIX_BROWSER_FALLBACK = browserFallback;
-      };
-    }
     {
       name = "omanix-launch-or-focus";
       deps = [
@@ -148,6 +136,7 @@ let
         libnotify
         systemd
         xdg-utils
+        pavucontrol
       ];
       envs = {
         WALKER_BIN = "${walker}/bin/walker";
@@ -223,39 +212,6 @@ let
         hyprland
         jq
         coreutils
-      ];
-    }
-    {
-      name = "omanix-restart-walker";
-      deps = [
-        bash
-        systemd
-        libnotify
-        coreutils
-      ];
-    }
-    {
-      name = "omanix-launch-audio";
-      deps = [
-        bash
-        pavucontrol
-      ];
-    }
-    {
-      name = "omanix-launch-wifi";
-      deps = [ bash ];
-      selfPath = true;
-    }
-    {
-      name = "omanix-launch-bluetooth";
-      deps = [ bash ];
-      selfPath = true;
-    }
-    {
-      name = "omanix-toggle-waybar";
-      deps = [
-        bash
-        systemd
       ];
     }
     {
