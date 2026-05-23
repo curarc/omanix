@@ -14,7 +14,7 @@ let
   # are unaffected.
   # Ref: https://bbs.archlinux.org/viewtopic.php?id=300993
   steamBase = pkgs.steam.override {
-    extraArgs = "-pipewire";
+    extraEnv = { };
   };
 
   steamPatched = steamBase.overrideAttrs (prev: {
