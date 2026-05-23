@@ -30,8 +30,8 @@ let
 
     (lib.optional cfg.dpms.enable {
       inherit (cfg.dpms) timeout;
-      on-timeout = "hyprctl dispatch 'hl.dsp.dpms("off")'";
-      on-resume = "hyprctl dispatch 'hl.dsp.dpms("on")'";
+      on-timeout = ''hyprctl dispatch 'hl.dsp.dpms("off")' '';
+      on-resume = ''hyprctl dispatch 'hl.dsp.dpms("on")' '';
     })
 
     (lib.optional cfg.suspend.enable {
@@ -47,7 +47,7 @@ in
       general = {
         lock_cmd = lockCmd;
         before_sleep_cmd = "loginctl lock-session";
-        after_sleep_cmd = "hyprctl dispatch 'hl.dsp.dpms("on")'";
+        after_sleep_cmd = ''hyprctl dispatch 'hl.dsp.dpms("on")' '';
         unlock_cmd = "pkill -f 'omanix-screensaver'";
       };
       listener = listeners;
