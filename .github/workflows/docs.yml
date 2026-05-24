@@ -27,36 +27,52 @@ jobs:
       - name: Build option docs
         run: nix build .#docs
 
-      - name: Assemble site
+      - name: Install mdBook
         run: |
-          mkdir -p _site
-          cp result/options.md _site/options.md
-          cat > _site/index.md << 'EOF'
-          ---
-          title: Omanix
-          ---
+          curl -sSL https://github.com/rust-lang/mdBook/releases/download/v0.4.40/mdbook-v0.4.40-x86_64-unknown-linux-gnu.tar.gz | tar xz
+          chmod +x mdbook
+
+      - name: Assemble book
+        run: |
+          mkdir -p book/src
+          cp result/options.md book/src/options.md
+          cat > book/src/SUMMARY.md << 'EOF'
+          # Summary
+
+          - [Introduction](index.md)
+          - [Options Reference](options.md)
+          EOF
+          cat > book/src/index.md << 'EOF'
           # Omanix
 
-          A declarative NixOS desktop environment based on Hyprland.
+          A declarative NixOS desktop environment based on [Hyprland](https://hyprland.org), built with Nix flakes.
 
-          - [Options Reference](options)
+          Omanix is a NixOS port of [Omarchy](https://github.com/basecamp/omarchy) — a curated, keyboard-driven desktop. Unlike the original (which targets Arch Linux), Omanix is fully declarative. There is no runtime theme switching or TUI package installer; everything is configured at build time.
+
+          ## Quick links
+
+          - [Options Reference](options.md) — all `omanix.*` configuration options
+          - [Source code](https://github.com/T00fy/omanix)
           EOF
-          cat > _site/_config.yml << 'EOF'
-          title: Omanix Documentation
-          theme: jekyll-theme-cayman
-          markdown: GFM
+          cat > book/book.toml << 'EOF'
+          [book]
+          title = "Omanix Documentation"
+          authors = ["Toofy"]
+          language = "en"
+
+          [output.html]
+          default-theme = "coal"
+          preferred-dark-theme = "coal"
+          git-repository-url = "https://github.com/T00fy/omanix"
+          git-repository-icon = "fa-github"
           EOF
 
-      - uses: actions/configure-pages@v5
-
-      - uses: actions/jekyll-build-pages@v1
-        with:
-          source: _site
-          destination: ./_site_output
+      - name: Build book
+        run: ./mdbook build book
 
       - uses: actions/upload-pages-artifact@v3
         with:
-          path: _site_output
+          path: book/book
 
   deploy:
     needs: build
