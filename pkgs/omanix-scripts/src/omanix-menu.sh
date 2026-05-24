@@ -111,14 +111,22 @@ show_setup_menu() {
 }
 
 show_system_menu() {
-  CHOICE=$(menu_cmd "System" "󰌾  Lock\n󱄄  Screensaver\n󰗽  Logout\n󰒲  Suspend\n󰜉  Restart\n󰐥  Shutdown")
+  if pgrep -x hypridle >/dev/null; then
+    IDLE_LABEL="󰒳  Disable Idle Lock"
+  else
+    IDLE_LABEL="󰒲  Enable Idle Lock"
+  fi
+
+  CHOICE=$(menu_cmd "System" "󰌾  Lock\n󱄄  Screensaver\n$IDLE_LABEL\n󰗽  Logout\n󰒲  Suspend\n󰜉  Restart\n󰐥  Shutdown")
   case "$CHOICE" in
-    *Lock*)        omanix-lock-screen ;;
-    *Screensaver*) omanix-screensaver ${OMANIX_SCREENSAVER_LOGO:+--logo "$OMANIX_SCREENSAVER_LOGO"} ;;
-    *Logout*)      omanix-cmd-logout ;;
-    *Suspend*)     systemctl suspend ;;
-    *Restart*)     omanix-cmd-reboot ;;
-    *Shutdown*)    omanix-cmd-shutdown ;;
+    *Lock*)             omanix-lock-screen ;;
+    *Screensaver*)      omanix-screensaver ${OMANIX_SCREENSAVER_LOGO:+--logo "$OMANIX_SCREENSAVER_LOGO"} ;;
+    *"Disable Idle"*)   omanix-toggle-idle --disable ;;
+    *"Enable Idle"*)    omanix-toggle-idle --enable ;;
+    *Logout*)           omanix-cmd-logout ;;
+    *Suspend*)          systemctl suspend ;;
+    *Restart*)          omanix-cmd-reboot ;;
+    *Shutdown*)         omanix-cmd-shutdown ;;
     *) back_to show_main_menu ;;
   esac
 }

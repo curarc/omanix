@@ -319,6 +319,7 @@ let
       deps = [
         bash
         procps
+        coreutils
         hypridle
         libnotify
       ];

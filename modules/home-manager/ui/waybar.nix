@@ -111,6 +111,7 @@ in
       type = lib.types.listOf lib.types.str;
       default = [
         "custom/screenrecording-indicator"
+        "custom/idle-inhibit"
         "mpris"
         "tray"
         "bluetooth"
@@ -206,6 +207,14 @@ in
             interval = 2;
             return-type = "";
             signal = 8;
+          };
+          "custom/idle-inhibit" = {
+            exec = ''echo "󰒳"'';
+            exec-if = ''test -f "''${XDG_RUNTIME_DIR:-/tmp}/omanix-idle-inhibited"'';
+            interval = 2;
+            return-type = "";
+            signal = 9;
+            on-click = "omanix-toggle-idle";
           };
           clock = {
             format = cfg.clockFormat;
@@ -307,8 +316,8 @@ in
 
         #workspaces button.empty { opacity: 0.5; }
 
-        #cpu, #battery, #pulseaudio, #custom-omanix, 
-        #custom-screenrecording-indicator, #custom-update {
+        #cpu, #battery, #pulseaudio, #custom-omanix,
+        #custom-screenrecording-indicator, #custom-idle-inhibit, #custom-update {
           min-width: 12px;
           margin: 0 7.5px;
         }
