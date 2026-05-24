@@ -63,4 +63,6 @@ let
 in
 pkgs.runCommand "omanix-options-docs" { } ''
   ${splitScript} ${nixosDocs.optionsJSON}/share/doc/nixos/options.json ${hmDocs.optionsJSON}/share/doc/nixos/options.json $out
+  cp ${./getting-started.md} $out/getting-started.md
+  cp ${./configuration.md} $out/configuration.md
 ''

@@ -162,6 +162,8 @@ summary_path = out_dir / "SUMMARY.md"
 with open(summary_path, "w") as f:
     f.write("# Summary\n\n")
     f.write("- [Introduction](index.md)\n")
+    f.write("- [Getting Started](getting-started.md)\n")
+    f.write("- [Configuration Guide](configuration.md)\n")
     f.write("- [Options Reference]()\n")
     for cat_id, cat in categories.items():
         if not cat["options"]:

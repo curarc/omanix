@@ -43,18 +43,15 @@ jobs:
 
           Omanix is a NixOS port of [Omarchy](https://github.com/basecamp/omarchy) — a curated, keyboard-driven desktop. Unlike the original (which targets Arch Linux), Omanix is fully declarative. There is no runtime theme switching or TUI package installer; everything is configured at build time.
 
-          ## Sections
+          ## Documentation
 
-          - **[NixOS Options](nixos.md)** — system-level configuration
-          - **[Apps](apps.md)** — optional application modules
-          - **[Hyprland](hyprland.md)** — window manager visuals, bindings, rules
-          - **[Idle & Power](idle.md)** — screensaver, lock, suspend
-          - **[Monitors](monitors.md)** — multi-monitor setup
-          - **[Languages](languages.md)** — development toolchains
-          - **[Terminal](terminal.md)** — terminal emulator config
-          - **[Browser](browser.md)** — browser integration
-          - **[Theme & UI](theme.md)** — theme, wallpaper, Waybar, Walker
-          - **[User](user.md)** — git identity
+          - **[Getting Started](getting-started.md)** — add Omanix to your flake and rebuild
+          - **[Configuration Guide](configuration.md)** — common configuration patterns with examples
+          - **Options Reference** — every `omanix.*` option with types, defaults, and descriptions
+
+          ## Source
+
+          - [GitHub](https://github.com/T00fy/omanix)
           EOF
           cat > book/book.toml << 'EOF'
           [book]

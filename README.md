@@ -28,247 +28,33 @@ Since NixOS is a fundamentally different paradigm from Arch, some things work di
 
 ## Quick Start
 
-### 1. Add Omanix to Your Flake
-
-```nix
-# flake.nix
-{
-  inputs = {
-    nixpkgs.url = "github:NixOS/nixpkgs/nixos-unstable";
-    home-manager = {
-      url = "github:nix-community/home-manager";
-      inputs.nixpkgs.follows = "nixpkgs";
-    };
-    omanix = {
-      url = "github:T00fy/omanix";
-      inputs.nixpkgs.follows = "nixpkgs";
-      inputs.home-manager.follows = "home-manager";
-    };
-  };
-
-  outputs = { nixpkgs, home-manager, omanix, ... }: {
-    nixosConfigurations.my-machine = nixpkgs.lib.nixosSystem {
-      system = "x86_64-linux";
-      modules = [
-        ./hardware-configuration.nix
-
-        # System-level module
-        omanix.nixosModules.default
-
-        home-manager.nixosModules.home-manager
-        {
-          home-manager = {
-            useGlobalPkgs = true;
-            useUserPackages = true;
-            users.yourname = {
-              imports = [ omanix.homeManagerModules.default ];
-              home.stateVersion = "24.11";
-
-              omanix = {
-                user = {
-                  name = "Your Name";
-                  email = "you@example.com";
-                };
-              };
-            };
-          };
-        }
-      ];
-    };
-  };
-}
-```
-
-### 2. Enable the System Module
-
-In your NixOS configuration (or inline in the flake):
+Add Omanix to your flake inputs, import both modules, and rebuild:
 
 ```nix
 omanix = {
-  enable = true;
-  theme = "tokyo-night";    # See "Themes" below
-  wallpaperIndex = 0;       # Which wallpaper from the theme to use
+  url = "github:T00fy/omanix";
+  inputs.nixpkgs.follows = "nixpkgs";
+  inputs.home-manager.follows = "home-manager";
 };
 ```
 
-### 3. Rebuild
+```nix
+omanix.enable = true;
+```
 
 ```bash
 sudo nixos-rebuild switch --flake .
 ```
 
-Note: Once built there's a convenience alias provided: `rebuild`
+For the full setup walkthrough, see the **[Getting Started](https://t00fy.github.io/omanix/getting-started.html)** guide.
 
-## Configuration Reference
+## Documentation
 
-All options live under the `omanix` namespace. Here's what you can configure.
+Full documentation is available at **[t00fy.github.io/omanix](https://t00fy.github.io/omanix/)**.
 
-### Theme & Wallpaper
-
-```nix
-omanix = {
-  theme = "tokyo-night";
-  wallpaperIndex = 1;                    # Pick a different wallpaper from the theme
-  wallpaperOverride = ./my-wallpaper.jpg; # Or use your own image entirely
-};
-```
-
-### Monitor Setup
-
-```nix
-omanix = {
-  monitor.scale = "1.25";    # Global scale (or "auto")
-
-  # Multi-monitor workspace mapping
-  monitors = [
-    { name = "DP-2";     resolution = "2560x1440"; refreshRate = 144; }
-    { name = "HDMI-A-2"; resolution = "2560x1440"; refreshRate = 144; }
-  ];
-};
-```
-
-Each monitor gets its own set of workspaces. `Super+1-5` targets the focused monitor's workspaces. Run `hyprctl monitors` to find your monitor names.
-
-### Hyprland Visuals
-
-```nix
-omanix.hyprland = {
-  gaps.inner = 5;           # Between windows
-  gaps.outer = 10;          # Screen edges
-  border.size = 2;
-  rounding = 0;             # Corner radius
-
-  blur.enabled = true;
-  blur.size = 2;
-  blur.passes = 2;
-
-  shadow.enabled = true;
-  shadow.range = 2;
-
-  animations.enabled = true;
-};
-```
-
-### Idle & Power Management
-
-Every stage is independently togglable and has a configurable timeout:
-
-```nix
-omanix.idle = {
-  screensaver = { enable = true; timeout = 150; };   # 2.5 min
-  dimScreen   = { enable = true; timeout = 840; brightness = 10; };
-  lock        = { enable = true; timeout = 900; };   # 15 min
-  dpms        = { enable = true; timeout = 960; };
-  suspend     = { enable = true; timeout = 1800; };  # 30 min
-};
-```
-
-To disable suspend entirely, set `omanix.idle.suspend.enable = false`.
-
-### Languages
-
-Enable language toolchains and their LSPs for Neovim:
-
-```nix
-omanix.languages = {
-  nix.enable = true;          # On by default
-  markdown.enable = true;     # On by default
-  rust.enable = true;
-  go.enable = true;
-  java.enable = true;
-  docker.enable = true;
-  terraform.enable = true;
-  typescript.enable = true;
-  tailwind.enable = true;
-  json.enable = true;
-  dart.enable = true;
-};
-```
-
-### Optional Apps
-
-All optional apps default to `false` — enable what you need:
-
-```nix
-omanix.apps = {
-  jetbrains.intellij.enable = true;
-  jetbrains.rustrover.enable = true;
-  obsidian.enable = true;
-  whatsapp.enable = true;
-  spotify.enable = true;     # Spotify
-  obs.enable = true;
-  neovim.enable = true;       # This one defaults to true
-};
-```
-
-### Waybar
-
-```nix
-omanix.waybar = {
-  modules-left = [ "hyprland/workspaces" ];
-  modules-center = [ "clock" ];
-  modules-right = [
-    "cpu" "memory"                        # Add your own modules
-    "tray" "bluetooth" "network" "pulseaudio" "battery"
-  ];
-
-  # Configure any module
-  extraModuleSettings = {
-    clock = { format = "{:%H:%M:%S}"; interval = 1; };
-  };
-
-  # Append custom CSS (theme variables @background, @foreground, @accent are available)
-  extraStyle = ''
-    #cpu { color: @accent; margin: 0 8px; }
-  '';
-};
-```
-
-### Extra Keybindings
-
-```nix
-omanix.hyprland = {
-  extraBindings = [
-    "$mainMod SHIFT, G, Open GIMP, exec, gimp"
-  ];
-  extraWindowRules = [
-    "opacity 1 1, match:class ^(gimp)$"
-  ];
-  extraSettings = {
-    # Any raw Hyprland setting
-    general.allow_tearing = true;
-  };
-};
-```
-
-### System-Level Toggles
-
-```nix
-omanix = {
-  enable = true;
-  steam.enable = true;        # Steam + Gamescope + GameMode + MangoHud (default: true)
-  docker.enable = true;       # Docker daemon + lazydocker (default: true)
-  libreoffice.enable = true;  # LibreOffice (default: true)
-  login.enable = true;        # SDDM with SilentSDDM theme (default: true)
-};
-```
-
-## Overriding Defaults
-
-Omanix sets opinionated defaults, but everything can be overridden using standard NixOS/Home Manager patterns:
-
-```nix
-# Override a specific setting completely
-wayland.windowManager.hyprland.settings.general.gaps_in = lib.mkForce 10;
-
-# Append to a list
-wayland.windowManager.hyprland.settings.bind = lib.mkAfter [
-  "$mainMod SHIFT, P, exec, my-custom-app"
-];
-
-# Override hypridle listeners
-services.hypridle.settings.listener = lib.mkForce [ /* your config */ ];
-```
+- [Getting Started](https://t00fy.github.io/omanix/getting-started.html) — add Omanix to your flake
+- [Configuration Guide](https://t00fy.github.io/omanix/configuration.html) — common patterns with examples
+- [Options Reference](https://t00fy.github.io/omanix/nixos.html) — every `omanix.*` option with types and defaults
 
 ## Keybindings
 
