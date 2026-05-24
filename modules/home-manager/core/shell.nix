@@ -1,5 +1,17 @@
-{ pkgs, config, ... }:
+{ pkgs, config, lib, ... }:
+let
+  cfg = config.omanix.shell;
+in
 {
+  options.omanix.shell = {
+    dirhistory = lib.mkOption {
+      type = lib.types.bool;
+      default = false;
+      description = "Enable oh-my-zsh dirhistory plugin (Alt+arrows to navigate directories)";
+    };
+  };
+
+  config = {
   programs = {
 
     direnv = {
@@ -22,6 +34,10 @@
         # Right arrow just moves cursor (forward-char is not in accept list)
         bindkey '^[[C' forward-char
 
+        # Alt+Left/Right to move by word
+        bindkey '^[[1;3D' backward-word
+        bindkey '^[[1;3C' forward-word
+
         bindkey '^R' fzf-history-widget
 
       '';
@@ -34,14 +50,13 @@
           "docker"
           "kubectl"
           "history"
-          "dirhistory"
           "extract"
           "z"
           "colored-man-pages"
           "command-not-found"
           "copypath"
           "copyfile"
-        ];
+        ] ++ lib.optionals cfg.dirhistory [ "dirhistory" ];
         theme = "";
       };
 
@@ -122,4 +137,5 @@
     file
     yt-dlp
   ];
+  };
 }
