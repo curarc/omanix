@@ -320,6 +320,7 @@ let
         bash
         procps
         coreutils
+        hyprland
         hypridle
         libnotify
       ];
