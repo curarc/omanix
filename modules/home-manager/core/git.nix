@@ -4,8 +4,14 @@ let
 in
 {
   options.omanix.user = {
-    name = lib.mkOption { type = lib.types.str; };
-    email = lib.mkOption { type = lib.types.str; };
+    name = lib.mkOption {
+      type = lib.types.str;
+      description = "Git user name used for commits.";
+    };
+    email = lib.mkOption {
+      type = lib.types.str;
+      description = "Git email address used for commits.";
+    };
   };
 
   config = {

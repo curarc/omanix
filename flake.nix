@@ -92,6 +92,16 @@
         };
 
       # ═══════════════════════════════════════════════════════════════════
+      # Packages (documentation, etc.)
+      # ═══════════════════════════════════════════════════════════════════
+      packages.x86_64-linux.docs = import ./docs/generate-options.nix {
+        pkgs = nixpkgs.legacyPackages.x86_64-linux;
+        inherit (nixpkgs) lib;
+        inherit self inputs home-manager;
+        inherit omanixLib;
+      };
+
+      # ═══════════════════════════════════════════════════════════════════
       # Home Manager Module (user-level configuration)
       # ═══════════════════════════════════════════════════════════════════
       homeManagerModules.default =

@@ -6,6 +6,7 @@ in
   options.omanix.login = {
     enable = lib.mkEnableOption "Omanix login screen (SDDM)" // {
       default = true;
+      description = "Whether to enable the SDDM login manager with the Omanix theme.";
     };
   };
 

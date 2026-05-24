@@ -23,6 +23,7 @@ in
         "ssh"
       ];
       default = "https";
+      description = "Protocol to use for git operations (https or ssh).";
     };
   };
 

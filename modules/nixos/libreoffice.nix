@@ -11,6 +11,7 @@ in
   options.omanix.libreoffice = {
     enable = lib.mkEnableOption "LibreOffice suite" // {
       default = true;
+      description = "Whether to install LibreOffice.";
     };
   };
 
