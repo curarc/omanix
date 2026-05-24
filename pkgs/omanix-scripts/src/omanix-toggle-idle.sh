@@ -6,44 +6,44 @@ refresh_waybar() {
   pkill -RTMIN+9 waybar 2>/dev/null
 }
 
-enable_idle() {
+idle_on() {
   if ! pgrep -x hypridle >/dev/null; then
     hypridle &
   fi
   rm -f "$STATE_FILE"
   refresh_waybar
-  [[ -t 0 ]] || notify-send "Idle Inhibit" "Now locking computer when idle"
+  [[ -t 0 ]] || notify-send "Idle" "Idle rules enabled"
 }
 
-disable_idle() {
+idle_off() {
   if pgrep -x hypridle >/dev/null; then
     pkill -x hypridle
   fi
-  hyprctl dispatch 'hl.dsp.dpms("on")' 2>/dev/null
+  pkill -f 'omanix-screensaver' 2>/dev/null
   touch "$STATE_FILE"
   refresh_waybar
-  [[ -t 0 ]] || notify-send "Idle Inhibit" "Stop locking computer when idle"
+  [[ -t 0 ]] || notify-send "Idle" "Idle rules disabled"
 }
 
 show_status() {
   if pgrep -x hypridle >/dev/null; then
-    echo "enabled"
+    echo "on"
     exit 0
   else
-    echo "disabled"
+    echo "off"
     exit 1
   fi
 }
 
 case "${1:-}" in
-  --status)  show_status ;;
-  --enable)  enable_idle ;;
-  --disable) disable_idle ;;
+  --status) show_status ;;
+  --on)     idle_on ;;
+  --off)    idle_off ;;
   *)
     if pgrep -x hypridle >/dev/null; then
-      disable_idle
+      idle_off
     else
-      enable_idle
+      idle_on
     fi
     ;;
 esac

@@ -112,15 +112,15 @@ show_setup_menu() {
 
 show_system_menu() {
   if pgrep -x hypridle >/dev/null; then
-    IDLE_LABEL="󰒳  Disable Idle Inhibit"
+    IDLE_LABEL="󰒳  Inhibit Hypridle"
   else
-    IDLE_LABEL="󰒲  Enable Idle Inhibit"
+    IDLE_LABEL="󰒲  Enable Hypridle"
   fi
 
   CHOICE=$(menu_cmd "System" "󰌾  Lock\n󱄄  Screensaver\n$IDLE_LABEL\n󰗽  Logout\n󰒲  Suspend\n󰜉  Restart\n󰐥  Shutdown")
   case "$CHOICE" in
-    *"Disable Idle"*)   omanix-toggle-idle --disable ;;
-    *"Enable Idle"*)    omanix-toggle-idle --enable ;;
+    *"Inhibit"*)   omanix-toggle-idle --off ;;
+    *"Enable H"*)  omanix-toggle-idle --on ;;
     *Lock*)             omanix-lock-screen ;;
     *Screensaver*)      omanix-screensaver ${OMANIX_SCREENSAVER_LOGO:+--logo "$OMANIX_SCREENSAVER_LOGO"} ;;
     *Logout*)           omanix-cmd-logout ;;

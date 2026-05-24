@@ -215,7 +215,7 @@ in
             interval = 2;
             return-type = "";
             signal = 9;
-            on-click = "omanix-toggle-idle";
+            on-click = "omanix-toggle-idle --on";
           };
           "custom/sunshine" = {
             exec = ''echo "󰖨"'';
@@ -331,6 +331,7 @@ in
         }
 
         #tray { margin-right: 16px; }
+        #custom-idle-inhibit { margin: 0 17px; }
         #bluetooth { margin-right: 17px; }
         #network { margin-right: 13px; }
         #custom-expand-icon { margin-right: 18px; }
@@ -344,7 +345,7 @@ in
         }
         .hidden { opacity: 0; }
 
-        #custom-screenrecording-indicator, #custom-idle-inhibit {
+        #custom-screenrecording-indicator {
           min-width: 12px;
           margin-left: 5px;
           font-size: 10px;
