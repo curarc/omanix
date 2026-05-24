@@ -210,7 +210,7 @@ in
           };
           "custom/idle-inhibit" = {
             exec = ''echo "󰒳"'';
-            exec-if = ''test -f "''${XDG_RUNTIME_DIR:-/tmp}/omanix-idle-inhibited"'';
+            exec-if = ''! systemctl --user is-active --quiet hypridle.service'';
             interval = 2;
             return-type = "";
             signal = 9;

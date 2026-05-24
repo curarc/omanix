@@ -7,18 +7,14 @@ refresh_waybar() {
 }
 
 idle_on() {
-  if ! pgrep -x hypridle >/dev/null; then
-    hypridle &
-  fi
+  systemctl --user start hypridle.service 2>/dev/null
   rm -f "$STATE_FILE"
   refresh_waybar
   [[ -t 0 ]] || notify-send "Idle" "Idle rules enabled"
 }
 
 idle_off() {
-  if pgrep -x hypridle >/dev/null; then
-    pkill -x hypridle
-  fi
+  systemctl --user stop hypridle.service 2>/dev/null
   pkill -f 'omanix-screensaver' 2>/dev/null
   touch "$STATE_FILE"
   refresh_waybar
@@ -26,7 +22,7 @@ idle_off() {
 }
 
 show_status() {
-  if pgrep -x hypridle >/dev/null; then
+  if systemctl --user is-active --quiet hypridle.service 2>/dev/null; then
     echo "on"
     exit 0
   else
@@ -40,7 +36,7 @@ case "${1:-}" in
   --on)     idle_on ;;
   --off)    idle_off ;;
   *)
-    if pgrep -x hypridle >/dev/null; then
+    if systemctl --user is-active --quiet hypridle.service 2>/dev/null; then
       idle_off
     else
       idle_on

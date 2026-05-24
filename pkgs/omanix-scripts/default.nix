@@ -322,8 +322,7 @@ let
         bash
         procps
         coreutils
-        hyprland
-        hypridle
+        systemd
         libnotify
       ];
     }
