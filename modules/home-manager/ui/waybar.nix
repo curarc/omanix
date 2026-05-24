@@ -112,6 +112,7 @@ in
       default = [
         "custom/screenrecording-indicator"
         "custom/idle-inhibit"
+        "custom/sunshine"
         "mpris"
         "tray"
         "bluetooth"
@@ -215,6 +216,13 @@ in
             return-type = "";
             signal = 9;
             on-click = "omanix-toggle-idle";
+          };
+          "custom/sunshine" = {
+            exec = ''echo "󰖨"'';
+            exec-if = "systemctl --user is-active sunshine.service >/dev/null 2>&1";
+            interval = 5;
+            return-type = "";
+            signal = 10;
           };
           clock = {
             format = cfg.clockFormat;
@@ -344,6 +352,11 @@ in
         }
         #custom-screenrecording-indicator.active { color: #a55555; }
 
+        #custom-sunshine {
+          min-width: 12px;
+          margin: 0 7.5px;
+          color: @accent;
+        }
         #custom-voxtype {
           min-width: 12px;
           margin: 0 0 0 7.5px;

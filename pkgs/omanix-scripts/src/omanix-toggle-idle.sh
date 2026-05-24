@@ -10,8 +10,6 @@ enable_idle() {
   if ! pgrep -x hypridle >/dev/null; then
     hypridle &
   fi
-  hyprctl keyword misc:mouse_move_enables_dpms false 2>/dev/null
-  hyprctl keyword misc:key_press_enables_dpms false 2>/dev/null
   rm -f "$STATE_FILE"
   refresh_waybar
   [[ -t 0 ]] || notify-send "Idle Inhibit" "Now locking computer when idle"
@@ -21,9 +19,7 @@ disable_idle() {
   if pgrep -x hypridle >/dev/null; then
     pkill -x hypridle
   fi
-  hyprctl dispatch dpms on 2>/dev/null
-  hyprctl keyword misc:mouse_move_enables_dpms true 2>/dev/null
-  hyprctl keyword misc:key_press_enables_dpms true 2>/dev/null
+  hyprctl dispatch 'hl.dsp.dpms("on")' 2>/dev/null
   touch "$STATE_FILE"
   refresh_waybar
   [[ -t 0 ]] || notify-send "Idle Inhibit" "Stop locking computer when idle"

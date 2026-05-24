@@ -11,6 +11,7 @@ in
     ./steam.nix
     ./libreoffice.nix
     ./docker.nix
+    ./sunshine.nix
   ];
 
   options.omanix = {
@@ -56,6 +57,16 @@ in
       type = lib.types.bool;
       default = true;
       description = "Enable Docker daemon.";
+    };
+    sunshine.enable = lib.mkOption {
+      type = lib.types.bool;
+      default = false;
+      description = "Enable Sunshine game streaming server (requires omanix.enable).";
+    };
+    sunshine.allowedIps = lib.mkOption {
+      type = lib.types.listOf lib.types.str;
+      default = [ ];
+      description = "List of IPs or CIDR subnets allowed to connect to Sunshine (e.g. [\"192.168.1.0/24\"]).";
     };
   };
 
