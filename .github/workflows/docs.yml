@@ -30,22 +30,33 @@ jobs:
       - name: Assemble site
         run: |
           mkdir -p _site
-          cp result/options.md _site/
+          cp result/options.md _site/options.md
           cat > _site/index.md << 'EOF'
           ---
-          title: Omanix Documentation
+          title: Omanix
           ---
-
           # Omanix
 
           A declarative NixOS desktop environment based on Hyprland.
 
-          - [Options Reference](options.md)
+          - [Options Reference](options)
           EOF
+          cat > _site/_config.yml << 'EOF'
+          title: Omanix Documentation
+          theme: jekyll-theme-cayman
+          markdown: GFM
+          EOF
+
+      - uses: actions/configure-pages@v5
+
+      - uses: actions/jekyll-build-pages@v1
+        with:
+          source: _site
+          destination: ./_site_output
 
       - uses: actions/upload-pages-artifact@v3
         with:
-          path: _site
+          path: _site_output
 
   deploy:
     needs: build
