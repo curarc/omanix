@@ -344,7 +344,7 @@ in
         }
         .hidden { opacity: 0; }
 
-        #custom-screenrecording-indicator {
+        #custom-screenrecording-indicator, #custom-idle-inhibit {
           min-width: 12px;
           margin-left: 5px;
           font-size: 10px;
