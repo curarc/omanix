@@ -80,8 +80,8 @@ show_share_menu() {
   CHOICE=$(menu_cmd "Share" "󰅍  Clipboard\n󰈔  File\n󰉋  Folder")
   case "$CHOICE" in
     *Clipboard*) omanix-cmd-share clipboard ;;
-    *File*)      ghostty --class="org.omanix.bash" -e bash -c "omanix-cmd-share file" ;;
-    *Folder*)    ghostty --class="org.omanix.bash" -e bash -c "omanix-cmd-share folder" ;;
+    *File*)      omanix-term --class="org.omanix.bash" -- bash -c "omanix-cmd-share file" ;;
+    *Folder*)    omanix-term --class="org.omanix.bash" -- bash -c "omanix-cmd-share folder" ;;
     *) back_to show_trigger_menu ;;
   esac
 }

@@ -17,8 +17,8 @@ let
   mkExecRepeatLocked = key: cmd: desc:
     mkBind key "hl.dsp.exec_cmd([[${cmd}]])" { description = desc; locked = true; repeating = true; };
 
-  terminal = ''ghostty --working-directory=\"$(omanix-cmd-terminal-cwd)\"'';
-  fileManager = ''nautilus --new-window \"$(omanix-cmd-terminal-cwd)\"'';
+  terminal = ''omanix-term --cwd="$(omanix-cmd-terminal-cwd)"'';
+  fileManager = ''nautilus --new-window "$(omanix-cmd-terminal-cwd)"'';
   browser = "${cfg.browser.package}/bin/${cfg.browser.bin}";
   browserPrivate = "${cfg.browser.package}/bin/${cfg.browser.bin} ${cfg.browser.privateFlag}";
 in
@@ -89,8 +89,8 @@ in
           (mkExec ''mod .. " + SHIFT + F"'' fileManager "Open File Manager")
           (mkExec ''mod .. " + SHIFT + B"'' browser "Open Browser")
           (mkExec ''mod .. " + SHIFT + ALT + B"'' browserPrivate "Open Private Browser")
-          (mkExec ''mod .. " + SHIFT + N"'' "${terminal} -e nvim" "Open Neovim")
-          (mkExec ''mod .. " + SHIFT + D"'' "${terminal} -e lazydocker" "Open Lazydocker")
+          (mkExec ''mod .. " + SHIFT + N"'' "${terminal} -- nvim" "Open Neovim")
+          (mkExec ''mod .. " + SHIFT + D"'' "${terminal} -- lazydocker" "Open Lazydocker")
           (mkExec ''mod .. " + SHIFT + O"'' "obsidian -disable-gpu" "Open Obsidian")
 
           # ─────────────────────────────────────────────────────────────────

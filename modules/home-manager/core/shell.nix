@@ -1,4 +1,4 @@
-{ pkgs, ... }:
+{ pkgs, config, ... }:
 {
   programs = {
 
@@ -74,7 +74,7 @@
       sessionVariables = {
         EDITOR = "nvim";
         VISUAL = "nvim";
-        TERMINAL = "ghostty";
+        TERMINAL = config.omanix.terminal.bin;
       };
     };
 
@@ -102,6 +102,11 @@
         git_branch = {
           format = "[$branch]($style) ";
           style = "italic cyan";
+        };
+        git_status = {
+          ahead = "↑";
+          behind = "↓";
+          diverged = "↕";
         };
       };
     };

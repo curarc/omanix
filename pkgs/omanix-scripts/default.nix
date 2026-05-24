@@ -8,6 +8,7 @@
   jq,
   coreutils,
   ghostty,
+  terminalWrapper ? ghostty,
   procps,
   systemd,
   walker,
@@ -83,7 +84,7 @@ let
       name = "omanix-launch-tui";
       deps = [
         bash
-        ghostty
+        terminalWrapper
         coreutils
       ];
     }
@@ -137,6 +138,7 @@ let
         systemd
         xdg-utils
         pavucontrol
+        terminalWrapper
       ];
       envs = {
         WALKER_BIN = "${walker}/bin/walker";
@@ -155,7 +157,7 @@ let
         gnused
         envsubst
         swaybg
-        ghostty
+        terminalWrapper
         glow
       ];
       envs = {
@@ -185,7 +187,7 @@ let
         bash
         coreutils
         gnused
-        ghostty
+        terminalWrapper
         glow
       ];
       envs = {
@@ -197,7 +199,7 @@ let
       name = "omanix-show-setup-help";
       deps = [
         bash
-        ghostty
+        terminalWrapper
         glow
         coreutils
       ];

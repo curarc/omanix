@@ -37,7 +37,7 @@
     ./ui/hidden-apps.nix
     ./ui/swayosd.nix
     ./ui/mako.nix
-    ./terminal/ghostty.nix
+    ./terminal
     ./core/bat.nix
   ];
 }

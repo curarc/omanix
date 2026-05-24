@@ -11,7 +11,7 @@ ADDRESS=$(echo "$ACTIVE" | jq -r ".address")
 TARGET="address:$ADDRESS"
 
 # 2. Check if it's a terminal
-if [[ "$CLASS" =~ "ghostty" || "$CLASS" =~ "kitty" || "$CLASS" =~ "Alacritty" || "$CLASS" =~ "neovide" ]]; then
+if [[ "$CLASS" =~ "ghostty" || "$CLASS" =~ "foot" || "$CLASS" =~ "kitty" || "$CLASS" =~ "Alacritty" || "$CLASS" =~ "neovide" ]]; then
   hyprctl dispatch "hl.dsp.send_shortcut({mods = \"CTRL\", key = \"U\", window = \"$TARGET\"})"
 else
   hyprctl dispatch "hl.dsp.send_shortcut({mods = \"SHIFT\", key = \"Home\", window = \"$TARGET\"})"

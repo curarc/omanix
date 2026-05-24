@@ -15,7 +15,7 @@ case "$TOPIC" in
 esac
 
 if command -v glow &> /dev/null; then
-  ghostty --class="org.omanix.terminal" -e sh -c "glow -p '$DOC_FILE'"
+  omanix-term --class="org.omanix.terminal" -- sh -c "glow -p '$DOC_FILE'"
 else
-  ghostty --class="org.omanix.terminal" -e sh -c "less '$DOC_FILE'"
+  omanix-term --class="org.omanix.terminal" -- sh -c "less '$DOC_FILE'"
 fi

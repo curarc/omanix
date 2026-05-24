@@ -10,4 +10,4 @@ CMD_NAME=$(basename "$1")
 
 # We use the 'org.omanix.[command]' class format to trigger
 # the 'floating-window' rule defined in modules/home-manager/desktop/hyprland/rules.nix
-exec setsid ghostty --class="org.omanix.$CMD_NAME" -e "$@"
+exec setsid omanix-term --class="org.omanix.$CMD_NAME" -- "$@"

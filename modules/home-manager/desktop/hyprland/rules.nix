@@ -79,7 +79,7 @@ in
           # ─────────────────────────────────────────────────────────────────
           # Terminals
           # ─────────────────────────────────────────────────────────────────
-          { match = { class = "(Alacritty|kitty|com.mitchellh.ghostty)"; }; tag = "+terminal"; }
+          { match = { class = "(Alacritty|kitty|com.mitchellh.ghostty|foot)"; }; tag = "+terminal"; }
 
           # ─────────────────────────────────────────────────────────────────
           # JetBrains IDEs

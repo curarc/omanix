@@ -1,60 +1,57 @@
 { config, lib, pkgs, ... }:
 let
+  cfg = config.omanix.terminal;
   theme = config.omanix.activeTheme;
   inherit (theme) colors;
   scale = config.omanix.monitor.scale;
   fontSize = if scale == "1" then 13 else 10;
 in
 {
-  options.omanix.terminal.mouseScrollMultiplier = lib.mkOption {
-    type = lib.types.float;
-    default = 5.0;
-    description = "Ghostty mouse scroll multiplier. Higher values scroll more lines per tick.";
-  };
+  config = lib.mkIf (cfg.emulator == "ghostty") {
+    programs.ghostty = {
+      enable = true;
+      settings = {
+        command = "${pkgs.zsh}/bin/zsh";
 
-  config.programs.ghostty = {
-    enable = true;
-    settings = {
-      command = "${pkgs.zsh}/bin/zsh";
+        window-padding-x = 14;
+        window-padding-y = 14;
+        window-decoration = false;
+        confirm-close-surface = false;
+        resize-overlay = "never";
+        gtk-toolbar-style = "flat";
 
-      window-padding-x = 14;
-      window-padding-y = 14;
-      window-decoration = false;
-      confirm-close-surface = false;
-      resize-overlay = "never";
-      gtk-toolbar-style = "flat";
+        cursor-style = "block";
+        cursor-style-blink = false;
+        mouse-scroll-multiplier = cfg.mouseScrollMultiplier;
+        font-family = config.omanix.font;
+        font-style = "Regular";
+        font-size = fontSize;
 
-      cursor-style = "block";
-      cursor-style-blink = false;
-      mouse-scroll-multiplier = config.omanix.terminal.mouseScrollMultiplier;
-      font-family = config.omanix.font;
-      font-style = "Regular";
-      font-size = fontSize;
+        inherit (colors) background;
+        inherit (colors) foreground;
+        cursor-color = colors.cursor;
+        selection-background = colors.selection_background;
+        selection-foreground = colors.selection_foreground;
 
-      inherit (colors) background;
-      inherit (colors) foreground;
-      cursor-color = colors.cursor;
-      selection-background = colors.selection_background;
-      selection-foreground = colors.selection_foreground;
-
-      palette = [
-        "0=${colors.color0}"
-        "1=${colors.color1}"
-        "2=${colors.color2}"
-        "3=${colors.color3}"
-        "4=${colors.color4}"
-        "5=${colors.color5}"
-        "6=${colors.color6}"
-        "7=${colors.color7}"
-        "8=${colors.color8}"
-        "9=${colors.color9}"
-        "10=${colors.color10}"
-        "11=${colors.color11}"
-        "12=${colors.color12}"
-        "13=${colors.color13}"
-        "14=${colors.color14}"
-        "15=${colors.color15}"
-      ];
+        palette = [
+          "0=${colors.color0}"
+          "1=${colors.color1}"
+          "2=${colors.color2}"
+          "3=${colors.color3}"
+          "4=${colors.color4}"
+          "5=${colors.color5}"
+          "6=${colors.color6}"
+          "7=${colors.color7}"
+          "8=${colors.color8}"
+          "9=${colors.color9}"
+          "10=${colors.color10}"
+          "11=${colors.color11}"
+          "12=${colors.color12}"
+          "13=${colors.color13}"
+          "14=${colors.color14}"
+          "15=${colors.color15}"
+        ];
+      };
     };
   };
 }
