@@ -38,6 +38,11 @@
       url = "github:yt-dlp/yt-dlp";
       flake = false;
     };
+
+    # Up-to-date AI agent CLIs (Claude Code, OpenCode, ...). Deliberately does
+    # NOT follow our nixpkgs: the `default` overlay builds against the flake's
+    # own pinned nixpkgs so the Numtide binary cache hits instead of rebuilding.
+    llm-agents.url = "github:numtide/llm-agents.nix";
   };
 
   outputs =
@@ -88,7 +93,10 @@
             silentSDDM.nixosModules.default
           ];
 
-          nixpkgs.overlays = [ self.overlays.default ];
+          nixpkgs.overlays = [
+            self.overlays.default
+            inputs.llm-agents.overlays.default
+          ];
         };
 
       # ═══════════════════════════════════════════════════════════════════

@@ -34,7 +34,7 @@ in
     # --- Claude Code Configuration ---
     (lib.mkIf cfg.claudeCode.enable {
       home = {
-        packages = [ pkgs.claude-code ];
+        packages = [ pkgs.llm-agents.claude-code ];
 
         # Disable telemetry declaratively if requested
         sessionVariables = lib.mkIf cfg.claudeCode.disableTelemetry {
@@ -50,8 +50,7 @@ in
 
     # --- Open Code Configuration ---
     (lib.mkIf cfg.openCode.enable {
-      # Note: adjust pkgs.opencode if the exact attribute name differs in nixpkgs
-      home.packages = [ pkgs.opencode ];
+      home.packages = [ pkgs.llm-agents.opencode ];
     })
   ];
 }

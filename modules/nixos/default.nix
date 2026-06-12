@@ -72,6 +72,16 @@ in
 
   config = lib.mkIf cfg.enable {
     nixpkgs.config.allowUnfree = true;
+
+    # Numtide binary cache for llm-agents.nix packages (Claude Code, OpenCode).
+    # The default overlay builds against llm-agents' pinned nixpkgs, so these
+    # cache hits avoid rebuilding the prebuilt agent binaries locally.
+    nix.settings = {
+      extra-substituters = [ "https://cache.numtide.com" ];
+      extra-trusted-public-keys = [
+        "niks3.numtide.com-1:DTx8wZduET09hRmMtKdQDxNNthLQETkc/yaX7M4qK0g="
+      ];
+    };
     omanix.activeTheme =
       let
         baseTheme = omanixLib.themes.${cfg.theme};
