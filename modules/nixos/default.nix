@@ -1,4 +1,4 @@
-{ config, lib, ... }:
+{ config, lib, pkgs, ... }:
 let
   omanixLib = import ../../lib { inherit lib; };
   cfg = config.omanix;
@@ -68,6 +68,11 @@ in
       default = [ ];
       description = "List of IPs or CIDR subnets allowed to connect to Sunshine (e.g. [\"192.168.1.0/24\"]).";
     };
+    devenv.enable = lib.mkOption {
+      type = lib.types.bool;
+      default = false;
+      description = "Install the devenv CLI system-wide (requires omanix.enable).";
+    };
   };
 
   config = lib.mkIf cfg.enable {
@@ -128,6 +133,13 @@ in
     # SERVICES
     # ═══════════════════════════════════════════════════════════════════
     services.blueman.enable = true;
+
+    # ═══════════════════════════════════════════════════════════════════
+    # SYSTEM PACKAGES
+    # ═══════════════════════════════════════════════════════════════════
+    # devenv CLI — available system-wide for users who want it (not used by
+    # Omanix itself).
+    environment.systemPackages = lib.optionals cfg.devenv.enable [ pkgs.devenv ];
 
     # ═══════════════════════════════════════════════════════════════════
     # PROGRAMS
