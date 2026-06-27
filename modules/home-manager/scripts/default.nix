@@ -98,9 +98,7 @@ in
     # ─────────────────────────────────────────────────────────────────
     # Screen recording toolchain
     # ─────────────────────────────────────────────────────────────────
-    gpu-screen-recorder
-    ffmpeg
-    v4l-utils
+    wl-screenrec
 
     # ─────────────────────────────────────────────────────────────────
     # Standalone apps (no dedicated omanix module yet)

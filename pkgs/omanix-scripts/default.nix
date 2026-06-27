@@ -30,9 +30,7 @@
   bitwarden-cli,
   pulseaudio,
   swayosd,
-  gpu-screen-recorder,
-  ffmpeg,
-  v4l-utils,
+  wl-screenrec,
   hypridle,
   localsend,
   fzf,
@@ -332,15 +330,11 @@ let
         bash
         coreutils
         jq
-        gawk
         procps
         hyprland
-        gpu-screen-recorder
-        ffmpeg
-        v4l-utils
+        wl-screenrec
+        pulseaudio
         libnotify
-        waybar
-        wl-clipboard
       ];
     }
     {

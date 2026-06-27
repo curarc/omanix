@@ -207,6 +207,7 @@ in
             interval = 2;
             return-type = "";
             signal = 8;
+            on-click = "omanix-cmd-screenrecord --stop-recording";
           };
           "custom/idle-inhibit" = {
             exec = ''echo "󰒳"'';

@@ -1,6 +1,16 @@
 #!/usr/bin/env bash
-# Start and stop a screenrecording, saved to ~/Videos by default.
+# Start and stop a screenrecording of the focused monitor, saved to ~/Videos by default.
 # Alternative location via OMARCHY_SCREENRECORD_DIR or XDG_VIDEOS_DIR ENVs.
+#
+# Uses wl-screenrec (wlroots screencopy + VAAPI hardware encoding). Calling this
+# script while a recording is active stops it; otherwise it starts one.
+#
+# NOTE: This is a departure from Omarchy, which uses gpu-screen-recorder. We
+# switched to wl-screenrec because it's far simpler: it captures via Hyprland's
+# native wlr-screencopy protocol with no xdg-desktop-portal picker and no
+# privileged setcap'd KMS helper — it just works out of the box. The tradeoff
+# is no webcam overlay, which gpu-screen-recorder supported; that's an
+# intentional drop since I don't use it.
 
 [[ -f ~/.config/user-dirs.dirs ]] && source ~/.config/user-dirs.dirs
 OUTPUT_DIR="${OMARCHY_SCREENRECORD_DIR:-${XDG_VIDEOS_DIR:-$HOME/Videos}}"
@@ -13,77 +23,51 @@ fi
 
 DESKTOP_AUDIO="false"
 MICROPHONE_AUDIO="false"
-WEBCAM="false"
-WEBCAM_DEVICE=""
 STOP_RECORDING="false"
 
 for arg in "$@"; do
   case "$arg" in
     --with-desktop-audio) DESKTOP_AUDIO="true" ;;
     --with-microphone-audio) MICROPHONE_AUDIO="true" ;;
-    --with-webcam) WEBCAM="true" ;;
-    --webcam-device=*) WEBCAM_DEVICE="${arg#*=}" ;;
     --stop-recording) STOP_RECORDING="true" ;;
   esac
 done
 
-cleanup_webcam() {
-  pkill -f "WebcamOverlay" 2>/dev/null
+toggle_screenrecording_indicator() {
+  pkill -RTMIN+8 waybar
 }
 
-start_webcam_overlay() {
-  cleanup_webcam
-
-  if [[ -z "$WEBCAM_DEVICE" ]]; then
-    WEBCAM_DEVICE=$(v4l2-ctl --list-devices 2>/dev/null | grep -m1 "^\s*/dev/video" | tr -d '\t')
-    if [[ -z "$WEBCAM_DEVICE" ]]; then
-      notify-send "No webcam devices found" -u critical -t 3000
-      return 1
-    fi
-  fi
-
-  local scale=$(hyprctl monitors -j | jq -r '.[] | select(.focused == true) | .scale')
-  local target_width=$(awk "BEGIN {printf \"%.0f\", 360 * $scale}")
-
-  local preferred_resolutions=("640x360" "1280x720" "1920x1080")
-  local video_size_arg=""
-  local available_formats=$(v4l2-ctl --list-formats-ext -d "$WEBCAM_DEVICE" 2>/dev/null)
-
-  for resolution in "${preferred_resolutions[@]}"; do
-    if echo "$available_formats" | grep -q "$resolution"; then
-      video_size_arg="-video_size $resolution"
-      break
-    fi
-  done
-
-  ffplay -f v4l2 $video_size_arg -framerate 30 "$WEBCAM_DEVICE" \
-    -vf "scale=${target_width}:-1" \
-    -window_title "WebcamOverlay" \
-    -noborder \
-    -fflags nobuffer -flags low_delay \
-    -probesize 32 -analyzeduration 0 \
-    -loglevel quiet &
-
-  sleep 1
+screenrecording_active() {
+  [[ -f "$STATE_FILE" ]] && kill -0 "$(cat "$STATE_FILE")" 2>/dev/null
 }
 
 start_screenrecording() {
   local filename="$OUTPUT_DIR/screenrecording-$(date +'%Y-%m-%d_%H-%M-%S').mp4"
-  local audio_devices=""
-  local audio_args=""
+  local monitor
+  monitor=$(hyprctl monitors -j | jq -r '.[] | select(.focused == true) | .name')
 
-  [[ "$DESKTOP_AUDIO" == "true" ]] && audio_devices+="default_output"
-
-  if [[ "$MICROPHONE_AUDIO" == "true" ]]; then
-    [[ -n "$audio_devices" ]] && audio_devices+="|"
-    audio_devices+="default_input"
+  if [[ -z "$monitor" ]]; then
+    notify-send "Screen recording error" "Could not determine the focused monitor." -u critical -t 3000
+    return 1
   fi
 
-  [[ -n "$audio_devices" ]] && audio_args+="-a $audio_devices"
+  local audio_args=()
+  if [[ "$DESKTOP_AUDIO" == "true" || "$MICROPHONE_AUDIO" == "true" ]]; then
+    audio_args+=(--audio)
+    # wl-screenrec records a single PulseAudio source. Prefer the microphone
+    # (default input) when requested, otherwise the default sink's monitor so
+    # we capture desktop output. Resolve names now — ffmpeg's pulse layer does
+    # not understand pactl's @DEFAULT_*@ tokens.
+    if [[ "$MICROPHONE_AUDIO" == "true" ]]; then
+      audio_args+=(--audio-device "$(pactl get-default-source)")
+    else
+      audio_args+=(--audio-device "$(pactl get-default-sink).monitor")
+    fi
+  fi
 
-  gpu-screen-recorder -w portal -f 60 -fallback-cpu-encoding yes -o "$filename" $audio_args -ac aac &
+  wl-screenrec --output "$monitor" "${audio_args[@]}" --filename "$filename" &
   echo "$!" > "$STATE_FILE"
-  notify-send "Screen Recording" "Recording started — press ALT+Print to stop" -t 3000
+  notify-send "Screen Recording" "Recording $monitor — press ALT+Print to stop" -t 3000
   toggle_screenrecording_indicator
 }
 
@@ -92,6 +76,7 @@ stop_screenrecording() {
   [[ -f "$STATE_FILE" ]] && pid=$(cat "$STATE_FILE")
 
   if [[ -n "$pid" ]] && kill -0 "$pid" 2>/dev/null; then
+    # wl-screenrec finalizes the mp4 cleanly on SIGINT.
     kill -SIGINT "$pid"
 
     local count=0
@@ -102,16 +87,13 @@ stop_screenrecording() {
 
     if kill -0 "$pid" 2>/dev/null; then
       kill -9 "$pid"
-      cleanup_webcam
       notify-send "Screen recording error" "Recording process had to be force-killed. Video may be corrupted." -u critical -t 5000
     else
-      cleanup_webcam
       notify-send "Screen recording saved to $OUTPUT_DIR" -t 2000
     fi
   else
-    # Fallback: try pgrep if state file is stale
-    pkill -SIGINT -f "gpu-screen-recorder -w" 2>/dev/null
-    cleanup_webcam
+    # Fallback: process is gone but state may be stale. Reap any stragglers.
+    pkill -SIGINT -x wl-screenrec 2>/dev/null
     notify-send "Screen recording stopped" -t 2000
   fi
 
@@ -119,21 +101,12 @@ stop_screenrecording() {
   toggle_screenrecording_indicator
 }
 
-toggle_screenrecording_indicator() {
-  pkill -RTMIN+8 waybar
-}
-
-screenrecording_active() {
-  [[ -f "$STATE_FILE" ]] && kill -0 "$(cat "$STATE_FILE")" 2>/dev/null
-}
-
 if screenrecording_active; then
   stop_screenrecording
-elif pgrep -f "WebcamOverlay" >/dev/null; then
-  cleanup_webcam
-elif [[ "$STOP_RECORDING" == "false" ]]; then
-  [[ "$WEBCAM" == "true" ]] && start_webcam_overlay
-  start_screenrecording || cleanup_webcam
+elif [[ "$STOP_RECORDING" == "true" ]]; then
+  # Asked to stop, but nothing is running — clear any stale indicator state.
+  rm -f "$STATE_FILE"
+  toggle_screenrecording_indicator
 else
-  exit 1
+  start_screenrecording
 fi
