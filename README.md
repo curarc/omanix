@@ -1,3 +1,7 @@
+# Omanix
+
+![Omanix running with default settings](docs/example.jpg)
+
 Omanix is a NixOS port of [Omarchy](https://omarchy.org). It brings the same curated, keyboard-driven Hyprland experience to NixOS while embracing the Nix philosophy: everything is declarative, reproducible, and configured at build time.
 
 ## What You Get
@@ -13,7 +17,7 @@ A complete Hyprland desktop out of the box:
 - **Lock Screen** - Hyprlock with themed clock and wallpaper blur
 - **Idle Management** - Hypridle with screensaver, dimming, locking, DPMS, and suspend — all configurable
 - **Screenshots** - Region/window/fullscreen capture via grim + slurp + Satty editor
-- **Screen Recording** - gpu-screen-recorder with optional audio and webcam overlay
+- **Screen Recording** - wl-screenrec with VAAPI hardware encoding and optional audio
 - **Theming** - Declarative themes that propagate to every component (terminal, bar, lock screen, notifications, browser chrome, btop, bat, Walker, SwayOSD)
 - **Menu System** - Nested Walker-based menus for style, capture, sharing, system controls, and documentation
 
@@ -25,6 +29,7 @@ Since NixOS is a fundamentally different paradigm from Arch, some things work di
 - **No TUI package installer.** Installing packages imperatively goes against the Nix philosophy. Everything is declared in your config.
 - **Zsh instead of Bash.** Omanix uses Zsh with Oh My Zsh, autosuggestions, and syntax highlighting as the default shell.
 - **Everything is a module option.** Apps, languages, visual tweaks, and idle behaviour are all configurable through typed NixOS/Home Manager options.
+- **wl-screenrec instead of gpu-screen-recorder.** Omanix records the screen with wl-screenrec (Hyprland's screencopy + VAAPI hardware encoding) for a simpler setup. There is no webcam overlay.
 
 ## Quick Start
 
