@@ -16,6 +16,31 @@ let
     text = builtins.readFile ./omanix-toggle-sunshine.sh;
   };
 
+  toggleDesktopItem = pkgs.makeDesktopItem {
+    name = "omanix-toggle-sunshine";
+    desktopName = "Sunshine";
+    comment = "Start/stop the Sunshine game stream host for Moonlight";
+    exec = "${toggleScript}/bin/omanix-toggle-sunshine";
+    icon = "dev.lizardbyte.app.Sunshine";
+    categories = [
+      "Network"
+      "RemoteAccess"
+    ];
+  };
+
+  # Upstream ships its own "Sunshine" launcher entry whose Exec runs the bare
+  # binary with no config file, bypassing sunshine.service entirely (and thus
+  # the declarative `file_apps` below) and falling back to the web-UI
+  # apps.json. Strip it so the app launcher only ever surfaces the toggle
+  # script above, which starts sunshine.service correctly. overrideAttrs (not
+  # symlinkJoin) so pname/mainProgram are preserved for getExe/security wrappers.
+  sunshinePackage = pkgs.sunshine.overrideAttrs (old: {
+    postInstall = (old.postInstall or "") + ''
+      rm -f $out/share/applications/dev.lizardbyte.app.Sunshine.desktop
+      rm -f $out/share/applications/dev.lizardbyte.app.Sunshine.terminal.desktop
+    '';
+  });
+
   tcpPorts = [
     47984
     47989
@@ -117,10 +142,14 @@ let
 in
 {
   config = lib.mkIf (cfg.enable && cfg.sunshine.enable) {
-    environment.systemPackages = [ toggleScript ];
+    environment.systemPackages = [
+      toggleScript
+      toggleDesktopItem
+    ];
 
     services.sunshine = {
       enable = true;
+      package = sunshinePackage;
       capSysAdmin = true;
       autoStart = false;
       # Declaring apps makes Sunshine ignore its web-UI apps.json in favour of
