@@ -68,6 +68,110 @@ in
       default = [ ];
       description = "List of IPs or CIDR subnets allowed to connect to Sunshine (e.g. [\"192.168.1.0/24\"]).";
     };
+    sunshine.scaledDesktop = {
+      enable = lib.mkOption {
+        type = lib.types.bool;
+        default = false;
+        description = ''
+          Add a Sunshine "Desktop" application whose prep-cmd temporarily
+          raises the host Hyprland scale for the streamed monitor while a
+          Moonlight client is connected, then reverts it on disconnect.
+
+          Useful when the host runs at 1x scale for local use but its UI is
+          too small to read when streamed to a smaller client display. The
+          scale change is live (via `hyprctl keyword monitor`) and leaves the
+          normal local experience untouched.
+
+          Declaring any Sunshine application makes Sunshine ignore its web-UI
+          apps.json, so this feature manages the app list declaratively.
+        '';
+      };
+      monitor = lib.mkOption {
+        type = lib.types.str;
+        example = "DP-2";
+        description = ''
+          Output name of the monitor Sunshine streams (from `hyprctl monitors`,
+          or the "[wlgrab] Selected monitor" line in Sunshine's log).
+        '';
+      };
+      mode = lib.mkOption {
+        type = lib.types.str;
+        example = "2560x1440@144";
+        description = ''
+          Physical mode string (WIDTHxHEIGHT@REFRESH) for the streamed monitor.
+          Kept identical between the scaled and reverted states so only the
+          scale factor changes.
+        '';
+      };
+      position = lib.mkOption {
+        type = lib.types.str;
+        default = "auto";
+        example = "0x0";
+        description = ''
+          Monitor position passed to `hyprctl keyword monitor`. Use the exact
+          position from `hyprctl monitors` (e.g. "0x0") so the revert restores
+          the original layout rather than letting Hyprland re-auto-place it.
+        '';
+      };
+      scale = lib.mkOption {
+        type = lib.types.str;
+        default = "2.0";
+        example = "2.0";
+        description = ''
+          Scale factor applied while a client is connected. Prefer factors that
+          divide the resolution to a whole number (e.g. 2.0 or 1.25 on 2560x1440)
+          to avoid Hyprland nudging the scale and softening the image.
+        '';
+      };
+      revertScale = lib.mkOption {
+        type = lib.types.str;
+        default = "1";
+        description = ''
+          Scale factor restored on disconnect. Should match the monitor's
+          normal local scale (usually the value of `omanix.monitor.scale`).
+        '';
+      };
+      scaledName = lib.mkOption {
+        type = lib.types.nullOr lib.types.str;
+        default = null;
+        example = "Desktop (Scaled)";
+        description = ''
+          Name shown in the Moonlight client for the scaled entry. Null uses a
+          descriptive default that includes the scale factor and monitor, e.g.
+          "Desktop (Scaled 2.0x — DP-2)".
+        '';
+      };
+      nativeName = lib.mkOption {
+        type = lib.types.nullOr lib.types.str;
+        default = null;
+        example = "Desktop (Native)";
+        description = ''
+          Name shown in the Moonlight client for the unscaled companion entry.
+          Null uses a descriptive default that includes the monitor, e.g.
+          "Desktop (Native — DP-2)". Pick this entry when the client drives an
+          external display that does not need UI enlargement.
+        '';
+      };
+    };
+    sunshine.extraApps = lib.mkOption {
+      type = lib.types.listOf (lib.types.attrsOf lib.types.anything);
+      default = [ ];
+      description = ''
+        Additional Sunshine application entries (passed verbatim to
+        `services.sunshine.applications.apps`). Use this to declare apps like
+        "Steam Big Picture" alongside the generated scaled Desktop entry, so the
+        whole app list stays reproducible rather than living in the web UI.
+      '';
+      example = lib.literalExpression ''
+        [
+          {
+            name = "Steam Big Picture";
+            detached = [ "setsid steam steam://open/bigpicture" ];
+            image-path = "steam.png";
+          }
+        ]
+      '';
+    };
     devenv.enable = lib.mkOption {
       type = lib.types.bool;
       default = false;
