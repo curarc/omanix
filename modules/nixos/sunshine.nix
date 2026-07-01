@@ -92,9 +92,18 @@ let
   # The Lua parser exposes an `hl` global instead, so we
   # set the monitor by evaluating `hl.monitor{...}` at runtime. Position is
   # pinned (not "auto") so the revert restores the exact original layout.
+  #
+  # Sunshine does NOT run prep-cmd through a shell: it hands the raw string to
+  # boost::process::child, whose posix arg splitter only groups on DOUBLE
+  # quotes (space-delimited otherwise) and has no concept of single quotes at
+  # all. A single-quoted Lua argument (the previous version of this command)
+  # gets shredded into multiple bogus argv entries, so `hyprctl eval` receives
+  # garbage and fails silently (exit 0, error only visible in Sunshine's log).
+  # Wrapping the whole Lua expression in double quotes, with single-quoted Lua
+  # string literals inside, keeps it as one argument through that splitter.
   mkMonitorCmd =
     scale:
-    ''${hyprctl} eval 'hl.monitor({ output = "${scaledCfg.monitor}", mode = "${scaledCfg.mode}", position = "${scaledCfg.position}", scale = "${scale}" })' '';
+    ''${hyprctl} eval "hl.monitor({ output = '${scaledCfg.monitor}', mode = '${scaledCfg.mode}', position = '${scaledCfg.position}', scale = '${scale}' })"'';
 
   # Default names embed the scale and monitor so the two entries are
   # self-explanatory in the Moonlight client. Overridable via scaledName /
