@@ -55,6 +55,12 @@
   walkerScaledHeight ? "375",
   menuWidth ? "295",
   menuMaxHeight ? "630",
+  # omanix.sunshine.scaledDesktop settings (from osConfig), empty when unset
+  scaledDesktopMonitor ? "",
+  scaledDesktopMode ? "",
+  scaledDesktopPosition ? "",
+  scaledDesktopScale ? "",
+  scaledDesktopRevertScale ? "",
 }:
 
 let
@@ -129,7 +135,15 @@ let
         procps
         coreutils
         libnotify
+        hyprland
       ];
+      envs = {
+        OMANIX_SCALE_MONITOR = scaledDesktopMonitor;
+        OMANIX_SCALE_MODE = scaledDesktopMode;
+        OMANIX_SCALE_POSITION = scaledDesktopPosition;
+        OMANIX_SCALE_FACTOR = scaledDesktopScale;
+        OMANIX_SCALE_REVERT_FACTOR = scaledDesktopRevertScale;
+      };
     }
     {
       name = "omanix-smart-delete";

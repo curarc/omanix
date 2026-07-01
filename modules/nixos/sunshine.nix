@@ -83,34 +83,34 @@ let
 
   scaledCfg = cfg.sunshine.scaledDesktop;
 
-  # Absolute path: the Sunshine user service forces PATH=null, so prep-cmd
-  # children can't resolve `hyprctl` from PATH. The service does inherit the
-  # Hyprland session env (HYPRLAND_INSTANCE_SIGNATURE etc.) from the graphical
-  # session, so hyprctl can still find the running compositor.
-  hyprctl = "${config.programs.hyprland.package}/bin/hyprctl";
-
-  # The Lua parser exposes an `hl` global instead, so we
-  # set the monitor by evaluating `hl.monitor{...}` at runtime. Position is
-  # pinned (not "auto") so the revert restores the exact original layout.
+  # omanix-scale (pkgs/omanix-scripts/src/omanix-scale.sh) owns BOTH the
+  # Hyprland monitor scale change (via `hyprctl eval hl.monitor{...}` — see
+  # its own comments for why that specific form is required with the Lua
+  # config parser, and why the command must be double-quote-wrapped since
+  # Sunshine hands prep-cmd straight to boost::process::child with no shell
+  # in between) and the waybar/walker/foot config swap. Previously this
+  # module ran the hyprctl command directly and omanix-scale ran the rest
+  # separately — which let a menu-triggered toggle change waybar/walker/foot's
+  # sizing tables (tuned for a 2x compositor scale) WITHOUT the compositor
+  # scale itself changing, shrinking the UI instead of growing it. Now there
+  # is exactly one code path for "scale up"/"scale down".
   #
-  # Sunshine does NOT run prep-cmd through a shell: it hands the raw string to
-  # boost::process::child, whose posix arg splitter only groups on DOUBLE
-  # quotes (space-delimited otherwise) and has no concept of single quotes at
-  # all. A single-quoted Lua argument (the previous version of this command)
-  # gets shredded into multiple bogus argv entries, so `hyprctl eval` receives
-  # garbage and fails silently (exit 0, error only visible in Sunshine's log).
-  # Wrapping the whole Lua expression in double quotes, with single-quoted Lua
-  # string literals inside, keeps it as one argument through that splitter.
-  mkMonitorCmd =
-    scale:
-    ''${hyprctl} eval "hl.monitor({ output = '${scaledCfg.monitor}', mode = '${scaledCfg.mode}', position = '${scaledCfg.position}', scale = '${scale}' })"'';
-
-  # Absolute path for the same reason as hyprctl above: no PATH, no shell.
-  # omanix-scale (pkgs/omanix-scripts/src/omanix-scale.sh) retargets the
-  # waybar/walker/foot config symlinks rendered for the runtime UI-scale
-  # toggle, so waybar/walker actually resize alongside the Hyprland monitor
-  # scale change above.
-  omanixScaleBin = "${pkgs.omanix-scripts}/bin/omanix-scale";
+  # `pkgs.omanix-scripts` (the bare overlay package) has no scaledDesktop
+  # values baked in — those are only injected by the home-manager module
+  # (modules/home-manager/scripts/default.nix, via osConfig) for the
+  # omanix-menu-triggered instance. Build our own override here from the same
+  # NixOS-level scaledCfg so the Sunshine-triggered instance matches it
+  # exactly, without reaching into home-manager's config from a NixOS module.
+  omanixScaleScripts = pkgs.omanix-scripts.override {
+    scaledDesktopMonitor = scaledCfg.monitor;
+    scaledDesktopMode = scaledCfg.mode;
+    scaledDesktopPosition = scaledCfg.position;
+    scaledDesktopScale = scaledCfg.scale;
+    scaledDesktopRevertScale = scaledCfg.revertScale;
+  };
+  # Absolute path: the Sunshine user service forces PATH=null, so prep-cmd
+  # children can't resolve binaries from PATH.
+  omanixScaleBin = "${omanixScaleScripts}/bin/omanix-scale";
 
   # Default names embed the scale and monitor so the two entries are
   # self-explanatory in the Moonlight client. Overridable via scaledName /
@@ -131,10 +131,6 @@ let
     name = scaledName;
     image-path = "desktop.png";
     prep-cmd = [
-      {
-        do = mkMonitorCmd scaledCfg.scale;
-        undo = mkMonitorCmd scaledCfg.revertScale;
-      }
       {
         do = "${omanixScaleBin} --on";
         undo = "${omanixScaleBin} --off";

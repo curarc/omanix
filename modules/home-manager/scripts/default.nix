@@ -4,9 +4,22 @@
   config,
   lib,
   omanixLib,
+  osConfig ? null,
   ...
 }:
 let
+  # omanix-scale (runtime Moonlight UI-scale toggle) needs the same monitor
+  # scale-change command Sunshine's own prep-cmd uses, so a menu-triggered
+  # toggle and a Sunshine-triggered one can never disagree — see
+  # pkgs/omanix-scripts/src/omanix-scale.sh. osConfig is only present when
+  # running under NixOS with home-manager as a module (not standalone), same
+  # pattern as modules/home-manager/theme/default.nix.
+  hasScaledDesktop =
+    osConfig != null
+    && osConfig ? omanix
+    && osConfig.omanix ? sunshine
+    && osConfig.omanix.sunshine.scaledDesktop.enable;
+  scaledDesktop = if hasScaledDesktop then osConfig.omanix.sunshine.scaledDesktop else null;
   availableThemes = builtins.attrNames omanixLib.themes;
   themeListFormatted = builtins.concatStringsSep "\\n" (map (t: "- ${t}") availableThemes);
 
@@ -60,6 +73,11 @@ let
     walkerScaledHeight = toString config.omanix.walker.scaledHeight;
     menuWidth = toString config.omanix.menu.width;
     menuMaxHeight = toString config.omanix.menu.maxHeight;
+    scaledDesktopMonitor = if scaledDesktop != null then scaledDesktop.monitor else "";
+    scaledDesktopMode = if scaledDesktop != null then scaledDesktop.mode else "";
+    scaledDesktopPosition = if scaledDesktop != null then scaledDesktop.position else "";
+    scaledDesktopScale = if scaledDesktop != null then scaledDesktop.scale else "";
+    scaledDesktopRevertScale = if scaledDesktop != null then scaledDesktop.revertScale else "";
   };
 in
 {

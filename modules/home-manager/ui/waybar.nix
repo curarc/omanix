@@ -375,21 +375,37 @@ in
     programs.waybar = {
       enable = true;
       systemd.enable = true;
-      settings.mainBar = mkMainBar cfg.barHeight;
-      style = mkStyle cfg.fontSize;
+      # No settings/style here: leaving these unset means home-manager's
+      # waybar module never claims ~/.config/waybar/{config,style.css}. That
+      # path is instead a runtime symlink (see home.activation below and
+      # omanix-scale, pkgs/omanix-scripts/src/omanix-scale.sh) which retargets
+      # it between the -default/-1x/-2x variants without going through the
+      # Nix store. If home-manager owned it too, every rebuild would fight
+      # the toggle script for the same file and refuse to switch.
     };
 
-    # Pre-rendered 1x/2x variants of the same config/style, so omanix-scale
-    # (runtime Moonlight UI-scale toggle, see
-    # pkgs/omanix-scripts/src/omanix-scale.sh) can retarget the live
-    # ~/.config/waybar/{config,style.css} symlinks without a rebuild. These
-    # are extra files alongside the active render above; they don't change
-    # what programs.waybar itself produces for the "off"/default state.
+    # Pre-rendered variants that the live ~/.config/waybar/{config,style.css}
+    # symlink points at. "default" mirrors what used to be rendered directly
+    # into programs.waybar.settings/style (still driven by cfg.barHeight /
+    # cfg.fontSize); "1x"/"2x" are the fixed sizes omanix-scale toggles
+    # between for Moonlight streaming.
     xdg.configFile = {
+      "waybar/config-default.json".text = builtins.toJSON [ (mkMainBar cfg.barHeight) ];
+      "waybar/style-default.css".text = mkStyle cfg.fontSize;
       "waybar/config-1x.json".text = builtins.toJSON [ (mkMainBar (mkBarHeight "1")) ];
       "waybar/config-2x.json".text = builtins.toJSON [ (mkMainBar (mkBarHeight "2")) ];
       "waybar/style-1x.css".text = mkStyle (mkFontSize "1");
       "waybar/style-2x.css".text = mkStyle (mkFontSize "2");
     };
+
+    # Resets the live symlink to the default variant on every switch, the
+    # same effective behaviour home-manager used to give for free when it
+    # rendered ~/.config/waybar/config directly. Plain `ln -sf` in an
+    # activation hook, so it never participates in home-manager's
+    # file-conflict checks.
+    home.activation.omanixWaybarConfig = lib.hm.dag.entryAfter [ "writeBoundary" ] ''
+      run ln -sf "$HOME/.config/waybar/config-default.json" "$HOME/.config/waybar/config"
+      run ln -sf "$HOME/.config/waybar/style-default.css" "$HOME/.config/waybar/style.css"
+    '';
   };
 }

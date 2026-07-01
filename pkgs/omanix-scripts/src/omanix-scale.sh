@@ -9,7 +9,22 @@ refresh_waybar() {
   pkill -SIGUSR2 waybar 2>/dev/null
 }
 
+set_monitor_scale() {
+  # Only meaningful when omanix.sunshine.scaledDesktop is configured (the
+  # env vars are injected from osConfig — see
+  # modules/home-manager/scripts/default.nix). Sunshine's own prep-cmd used
+  # to run this hyprctl command separately from omanix-scale, which let the
+  # two drift apart: triggering omanix-scale from the menu changed
+  # waybar/walker/foot's sizing tables (which assume a 2x compositor scale)
+  # WITHOUT changing the compositor scale itself, making the UI shrink
+  # instead of grow. Owning both here in one place means the menu toggle and
+  # the Sunshine prep-cmd can never disagree again.
+  [[ -n "$OMANIX_SCALE_MONITOR" ]] || return 0
+  hyprctl eval "hl.monitor({ output = '$OMANIX_SCALE_MONITOR', mode = '$OMANIX_SCALE_MODE', position = '$OMANIX_SCALE_POSITION', scale = '$1' })"
+}
+
 scale_on() {
+  set_monitor_scale "$OMANIX_SCALE_FACTOR"
   ln -sf "$WAYBAR_DIR/config-2x.json" "$WAYBAR_DIR/config"
   ln -sf "$WAYBAR_DIR/style-2x.css" "$WAYBAR_DIR/style.css"
   refresh_waybar
@@ -18,6 +33,7 @@ scale_on() {
 }
 
 scale_off() {
+  set_monitor_scale "$OMANIX_SCALE_REVERT_FACTOR"
   ln -sf "$WAYBAR_DIR/config-1x.json" "$WAYBAR_DIR/config"
   ln -sf "$WAYBAR_DIR/style-1x.css" "$WAYBAR_DIR/style.css"
   refresh_waybar
