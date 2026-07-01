@@ -1,6 +1,7 @@
 #!/usr/bin/env bash
 
 STATE_FILE="${XDG_RUNTIME_DIR:-/tmp}/omanix-scale-active"
+OTHER_MONITORS_STATE="${XDG_RUNTIME_DIR:-/tmp}/omanix-scale-other-monitors"
 WAYBAR_DIR="${XDG_CONFIG_HOME:-$HOME/.config}/waybar"
 
 refresh_waybar() {
@@ -23,8 +24,39 @@ set_monitor_scale() {
   hyprctl eval "hl.monitor({ output = '$OMANIX_SCALE_MONITOR', mode = '$OMANIX_SCALE_MODE', position = '$OMANIX_SCALE_POSITION', scale = '$1' })"
 }
 
+# Any other connected monitor (a second local display, not the one Sunshine
+# streams) has no static mode/position declared anywhere — unlike
+# OMANIX_SCALE_MONITOR, it's not configured via omanix.sunshine.scaledDesktop.
+# So its current mode/position/scale is read live from Hyprland and
+# snapshotted to OTHER_MONITORS_STATE before scaling it up, letting scale_off
+# restore the exact prior values instead of guessing a revert factor.
+scale_other_monitors_on() {
+  : > "$OTHER_MONITORS_STATE"
+  hyprctl monitors -j | jq -c '.[] | select(.disabled == false)' | while read -r mon; do
+    name=$(jq -r '.name' <<<"$mon")
+    [[ "$name" == "$OMANIX_SCALE_MONITOR" ]] && continue
+    mode=$(jq -r '"\(.width)x\(.height)@\((.refreshRate * 100 | round) / 100)"' <<<"$mon")
+    position=$(jq -r '"\(.x)x\(.y)"' <<<"$mon")
+    scale=$(jq -r '.scale' <<<"$mon")
+    echo "$name|$mode|$position|$scale" >>"$OTHER_MONITORS_STATE"
+    hyprctl eval "hl.monitor({ output = '$name', mode = '$mode', position = '$position', scale = '$1' })"
+  done
+}
+
+scale_other_monitors_off() {
+  [[ -f "$OTHER_MONITORS_STATE" ]] || return 0
+  while IFS='|' read -r name mode position scale; do
+    [[ -n "$name" ]] || continue
+    # Skip monitors that were unplugged since scale_other_monitors_on ran.
+    hyprctl monitors -j | jq -e --arg n "$name" '.[] | select(.name == $n and .disabled == false)' >/dev/null 2>&1 || continue
+    hyprctl eval "hl.monitor({ output = '$name', mode = '$mode', position = '$position', scale = '$scale' })"
+  done <"$OTHER_MONITORS_STATE"
+  rm -f "$OTHER_MONITORS_STATE"
+}
+
 scale_on() {
   set_monitor_scale "$OMANIX_SCALE_FACTOR"
+  scale_other_monitors_on "$OMANIX_SCALE_FACTOR"
   ln -sf "$WAYBAR_DIR/config-2x.json" "$WAYBAR_DIR/config"
   ln -sf "$WAYBAR_DIR/style-2x.css" "$WAYBAR_DIR/style.css"
   refresh_waybar
@@ -34,6 +66,7 @@ scale_on() {
 
 scale_off() {
   set_monitor_scale "$OMANIX_SCALE_REVERT_FACTOR"
+  scale_other_monitors_off
   ln -sf "$WAYBAR_DIR/config-1x.json" "$WAYBAR_DIR/config"
   ln -sf "$WAYBAR_DIR/style-1x.css" "$WAYBAR_DIR/style.css"
   refresh_waybar

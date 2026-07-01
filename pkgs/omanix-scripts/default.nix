@@ -136,6 +136,7 @@ let
         coreutils
         libnotify
         hyprland
+        jq
       ];
       envs = {
         OMANIX_SCALE_MONITOR = scaledDesktopMonitor;
