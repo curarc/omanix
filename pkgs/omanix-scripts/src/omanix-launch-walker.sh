@@ -13,7 +13,20 @@ if ! pgrep -f "walker --gapplication-service" > /dev/null; then
   sleep 0.3
 fi
 
-# 2. Launch Walker with specific Omanix dimensions
-# Functional Parity: Uses the exact dimensions from the original script
+# 2. Pick dimensions/theme for this invocation. omanix-scale (runtime
+# Moonlight UI-scale toggle) flips a state file rather than restarting the
+# walker service — walker reads --theme/--width/--maxheight/--minheight
+# fresh on each launch, so no restart is needed to switch between them.
+if [[ -f "${XDG_RUNTIME_DIR:-/tmp}/omanix-scale-active" ]]; then
+  WIDTH="$OMANIX_WALKER_SCALED_WIDTH"
+  HEIGHT="$OMANIX_WALKER_SCALED_HEIGHT"
+  THEME="omanix-scaled"
+else
+  WIDTH="$OMANIX_WALKER_WIDTH"
+  HEIGHT="$OMANIX_WALKER_HEIGHT"
+  THEME="omanix-default"
+fi
+
+# 3. Launch Walker with the resolved dimensions/theme
 # We use the WALKER_BIN variable injected by the Nix wrapper
-exec "${WALKER_BIN:-walker}" --width "$OMANIX_WALKER_WIDTH" --maxheight "$OMANIX_WALKER_HEIGHT" --minheight "$OMANIX_WALKER_HEIGHT" "$@"
+exec "${WALKER_BIN:-walker}" --theme "$THEME" --width "$WIDTH" --maxheight "$HEIGHT" --minheight "$HEIGHT" "$@"

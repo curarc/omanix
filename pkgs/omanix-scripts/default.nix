@@ -51,6 +51,8 @@
   monitorMap ? "",
   walkerWidth ? "644",
   walkerHeight ? "300",
+  walkerScaledWidth ? "805",
+  walkerScaledHeight ? "375",
   menuWidth ? "295",
   menuMaxHeight ? "630",
 }:
@@ -116,7 +118,18 @@ let
         WALKER_BIN = "${walker}/bin/walker";
         OMANIX_WALKER_WIDTH = walkerWidth;
         OMANIX_WALKER_HEIGHT = walkerHeight;
+        OMANIX_WALKER_SCALED_WIDTH = walkerScaledWidth;
+        OMANIX_WALKER_SCALED_HEIGHT = walkerScaledHeight;
       };
+    }
+    {
+      name = "omanix-scale";
+      deps = [
+        bash
+        procps
+        coreutils
+        libnotify
+      ];
     }
     {
       name = "omanix-smart-delete";

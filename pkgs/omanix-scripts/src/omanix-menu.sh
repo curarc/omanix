@@ -117,10 +117,18 @@ show_system_menu() {
     IDLE_LABEL="󰒲  Enable Hypridle"
   fi
 
-  CHOICE=$(menu_cmd "System" "󰌾  Lock\n󱄄  Screensaver\n$IDLE_LABEL\n󰗽  Logout\n󰒲  Suspend\n󰜉  Restart\n󰐥  Shutdown")
+  if [[ -f "${XDG_RUNTIME_DIR:-/tmp}/omanix-scale-active" ]]; then
+    SCALE_LABEL="󰆓  Disable UI Scale"
+  else
+    SCALE_LABEL="󰍹  Enable UI Scale"
+  fi
+
+  CHOICE=$(menu_cmd "System" "󰌾  Lock\n󱄄  Screensaver\n$IDLE_LABEL\n$SCALE_LABEL\n󰗽  Logout\n󰒲  Suspend\n󰜉  Restart\n󰐥  Shutdown")
   case "$CHOICE" in
-    *"Inhibit"*)   omanix-toggle-idle --off ;;
-    *"Enable H"*)  omanix-toggle-idle --on ;;
+    *"Inhibit"*)         omanix-toggle-idle --off ;;
+    *"Enable H"*)        omanix-toggle-idle --on ;;
+    *"Disable UI Scale"*) omanix-scale --off ;;
+    *"Enable UI Scale"*)  omanix-scale --on ;;
     *Lock*)             omanix-lock-screen ;;
     *Screensaver*)      omanix-screensaver ${OMANIX_SCREENSAVER_LOGO:+--logo "$OMANIX_SCREENSAVER_LOGO"} ;;
     *Logout*)           omanix-cmd-logout ;;

@@ -3,11 +3,36 @@ let
   cfg = config.omanix.terminal;
   theme = config.omanix.activeTheme;
   inherit (theme) colors;
+
+  # Single source of truth for the per-scale font size, so the normal
+  # omanix.monitor.scale rendering and the default scaledFontSize (used by
+  # omanix-scale, the runtime Moonlight UI-scale toggle) can't drift apart.
+  mkFontSize = scale: if scale == "1" then 13 else 10;
+
   scale = config.omanix.monitor.scale;
-  fontSize = if scale == "1" then 13 else 10;
+  fontSize = mkFontSize scale;
   strip = c: lib.removePrefix "#" c;
 in
 {
+  options.omanix.terminal.scaledFontSize = lib.mkOption {
+    type = lib.types.int;
+    default = mkFontSize "2";
+    description = ''
+      Font size (pt) new foot windows use while omanix-scale is active (see
+      pkgs/omanix-scripts/src/omanix-scale.sh), e.g. during a scaled Moonlight
+      session. Applied via `foot -o main.font=...:size=N` at launch time by
+      the omanix-term wrapper.
+
+      NOTE: this only affects NEW foot windows opened while scaling is
+      active — foot has no signal/IPC to live-resize the font of an
+      already-open window (only SIGUSR1/2 for switching the color theme).
+      Existing windows are unaffected either direction; use foot's own
+      Ctrl+-/Ctrl++ bindings for those, as today. Revisit this if foot ever
+      gains a live font-resize API (or omanix builds one, e.g. a wrapper
+      around footclient).
+    '';
+  };
+
   config = lib.mkIf (cfg.emulator == "foot") {
     programs.foot = {
       enable = true;

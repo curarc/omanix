@@ -13,6 +13,18 @@ let
     then ''exec ${emu.pkg}/bin/${cfg.emulator} "''${ARGS[@]}" ${emu.execFlag} "''${CMD[@]}"''
     else ''exec ${emu.pkg}/bin/${cfg.emulator} "''${ARGS[@]}" "''${CMD[@]}"'';
 
+  # foot has no signal/IPC to live-resize the font of an already-open
+  # window (only SIGUSR1/2, for the color theme) — see
+  # modules/home-manager/terminal/foot.nix. So the scaled font only applies
+  # to NEW windows, via a CLI override on launch, gated on the same state
+  # file omanix-scale (runtime Moonlight UI-scale toggle) uses. Revisit if
+  # foot ever gains a live font-resize API.
+  scaledFootArgs = lib.optionalString (cfg.emulator == "foot") ''
+    if [[ -f "''${XDG_RUNTIME_DIR:-/tmp}/omanix-scale-active" ]]; then
+      ARGS+=(-o "main.font=${config.omanix.font}:size=${toString cfg.scaledFontSize}")
+    fi
+  '';
+
   terminalWrapper = pkgs.writeShellScriptBin "omanix-term" ''
     CLASS=""
     CWD=""
@@ -28,6 +40,7 @@ let
     ARGS=()
     [[ -n "$CLASS" ]] && ARGS+=(${emu.classFlag}="$CLASS")
     [[ -n "$CWD" ]] && ARGS+=(--working-directory="$CWD")
+    ${scaledFootArgs}
     if [[ ''${#CMD[@]} -gt 0 ]]; then
       ${execLine}
     else

@@ -56,6 +56,8 @@ let
       ;
     walkerWidth = toString config.omanix.walker.width;
     walkerHeight = toString config.omanix.walker.height;
+    walkerScaledWidth = toString config.omanix.walker.scaledWidth;
+    walkerScaledHeight = toString config.omanix.walker.scaledHeight;
     menuWidth = toString config.omanix.menu.width;
     menuMaxHeight = toString config.omanix.menu.maxHeight;
   };

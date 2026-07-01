@@ -105,6 +105,13 @@ let
     scale:
     ''${hyprctl} eval "hl.monitor({ output = '${scaledCfg.monitor}', mode = '${scaledCfg.mode}', position = '${scaledCfg.position}', scale = '${scale}' })"'';
 
+  # Absolute path for the same reason as hyprctl above: no PATH, no shell.
+  # omanix-scale (pkgs/omanix-scripts/src/omanix-scale.sh) retargets the
+  # waybar/walker/foot config symlinks rendered for the runtime UI-scale
+  # toggle, so waybar/walker actually resize alongside the Hyprland monitor
+  # scale change above.
+  omanixScaleBin = "${pkgs.omanix-scripts}/bin/omanix-scale";
+
   # Default names embed the scale and monitor so the two entries are
   # self-explanatory in the Moonlight client. Overridable via scaledName /
   # nativeName. Sunshine streams the primary output regardless of which entry
@@ -127,6 +134,10 @@ let
       {
         do = mkMonitorCmd scaledCfg.scale;
         undo = mkMonitorCmd scaledCfg.revertScale;
+      }
+      {
+        do = "${omanixScaleBin} --on";
+        undo = "${omanixScaleBin} --off";
       }
     ];
   };
