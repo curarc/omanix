@@ -78,6 +78,12 @@ let
     scaledDesktopPosition = if scaledDesktop != null then scaledDesktop.position else "";
     scaledDesktopScale = if scaledDesktop != null then scaledDesktop.scale else "";
     scaledDesktopRevertScale = if scaledDesktop != null then scaledDesktop.revertScale else "";
+    scaledDesktopSensitivity = if scaledDesktop != null then scaledDesktop.sensitivity else "";
+    scaledDesktopRevertSensitivity =
+      if scaledDesktop != null then scaledDesktop.revertSensitivity else "";
+    scaledDesktopCursorSize = if scaledDesktop != null then toString scaledDesktop.cursorSize else "";
+    scaledDesktopRevertCursorSize =
+      if scaledDesktop != null then toString scaledDesktop.revertCursorSize else "";
   };
 in
 {

@@ -61,6 +61,10 @@
   scaledDesktopPosition ? "",
   scaledDesktopScale ? "",
   scaledDesktopRevertScale ? "",
+  scaledDesktopSensitivity ? "",
+  scaledDesktopRevertSensitivity ? "",
+  scaledDesktopCursorSize ? "",
+  scaledDesktopRevertCursorSize ? "",
 }:
 
 let
@@ -144,6 +148,10 @@ let
         OMANIX_SCALE_POSITION = scaledDesktopPosition;
         OMANIX_SCALE_FACTOR = scaledDesktopScale;
         OMANIX_SCALE_REVERT_FACTOR = scaledDesktopRevertScale;
+        OMANIX_SCALE_SENSITIVITY = scaledDesktopSensitivity;
+        OMANIX_SCALE_REVERT_SENSITIVITY = scaledDesktopRevertSensitivity;
+        OMANIX_SCALE_CURSOR_SIZE = scaledDesktopCursorSize;
+        OMANIX_SCALE_REVERT_CURSOR_SIZE = scaledDesktopRevertCursorSize;
       };
     }
     {

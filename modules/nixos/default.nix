@@ -131,6 +131,51 @@ in
           normal local scale (usually the value of `omanix.monitor.scale`).
         '';
       };
+      sensitivity = lib.mkOption {
+        type = lib.types.str;
+        default = "-0.5";
+        example = "-0.5";
+        description = ''
+          Hyprland `input:sensitivity` applied while a client is connected
+          (range -1.0 to 1.0). Moonlight maps the client's pointer motion
+          onto the streamed monitor's logical (post-scale) resolution, so
+          doubling the monitor scale via `scale` makes the same physical
+          trackpad/mouse movement cover proportionally more logical
+          distance, making the cursor feel too fast. Lower this to
+          compensate so pointer speed while streaming matches local use.
+        '';
+      };
+      revertSensitivity = lib.mkOption {
+        type = lib.types.str;
+        default = "0";
+        description = ''
+          Hyprland `input:sensitivity` restored on disconnect. Should match
+          the monitor's normal local sensitivity (Hyprland's own default is
+          0, and `omanix.hyprland`/`input.nix` does not override it).
+        '';
+      };
+      cursorSize = lib.mkOption {
+        type = lib.types.int;
+        default = 12;
+        example = 12;
+        description = ''
+          Cursor size (`HYPRCURSOR_SIZE`/`XCURSOR_SIZE`) applied while a
+          client is connected. The cursor bitmap is rendered at this nominal
+          size multiplied by the monitor's scale factor, so it grows right
+          along with everything else when `scale` doubles the monitor —
+          halving it here (e.g. 12, for a normal size of 24 at `scale =
+          "2.0"`) keeps the cursor's on-screen size unchanged while streaming.
+        '';
+      };
+      revertCursorSize = lib.mkOption {
+        type = lib.types.int;
+        default = 24;
+        description = ''
+          Cursor size restored on disconnect. Should match the monitor's
+          normal local cursor size (`HYPRCURSOR_SIZE`/`XCURSOR_SIZE` in
+          `modules/home-manager/desktop/hyprland/envs.nix`, default 24).
+        '';
+      };
       scaledName = lib.mkOption {
         type = lib.types.nullOr lib.types.str;
         default = null;

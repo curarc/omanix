@@ -107,6 +107,10 @@ let
     scaledDesktopPosition = scaledCfg.position;
     scaledDesktopScale = scaledCfg.scale;
     scaledDesktopRevertScale = scaledCfg.revertScale;
+    scaledDesktopSensitivity = scaledCfg.sensitivity;
+    scaledDesktopRevertSensitivity = scaledCfg.revertSensitivity;
+    scaledDesktopCursorSize = toString scaledCfg.cursorSize;
+    scaledDesktopRevertCursorSize = toString scaledCfg.revertCursorSize;
   };
   # Absolute path: the Sunshine user service forces PATH=null, so prep-cmd
   # children can't resolve binaries from PATH.

@@ -24,6 +24,18 @@ set_monitor_scale() {
   hyprctl eval "hl.monitor({ output = '$OMANIX_SCALE_MONITOR', mode = '$OMANIX_SCALE_MODE', position = '$OMANIX_SCALE_POSITION', scale = '$1' })"
 }
 
+# Moonlight maps the client's pointer motion onto the streamed monitor's
+# logical (post-scale) resolution, so doubling the monitor scale above makes
+# the same physical trackpad/mouse movement feel much faster, and the cursor
+# bitmap (rendered at a fixed nominal size times the scale factor) grows
+# right along with everything else. Both are purely cosmetic/feel issues
+# introduced by scaling, so they're corrected here in lockstep with it.
+set_pointer_feel() {
+  local sensitivity="$1" cursor_size="$2"
+  [[ -n "$sensitivity" ]] && hyprctl eval "hl.config({ input = { sensitivity = $sensitivity } })"
+  [[ -n "$cursor_size" ]] && hyprctl setcursor "${HYPRCURSOR_THEME:-Adwaita}" "$cursor_size"
+}
+
 # Any other connected monitor (a second local display, not the one Sunshine
 # streams) has no static mode/position declared anywhere — unlike
 # OMANIX_SCALE_MONITOR, it's not configured via omanix.sunshine.scaledDesktop.
@@ -57,6 +69,7 @@ scale_other_monitors_off() {
 scale_on() {
   set_monitor_scale "$OMANIX_SCALE_FACTOR"
   scale_other_monitors_on "$OMANIX_SCALE_FACTOR"
+  set_pointer_feel "$OMANIX_SCALE_SENSITIVITY" "$OMANIX_SCALE_CURSOR_SIZE"
   ln -sf "$WAYBAR_DIR/config-2x.json" "$WAYBAR_DIR/config"
   ln -sf "$WAYBAR_DIR/style-2x.css" "$WAYBAR_DIR/style.css"
   refresh_waybar
@@ -67,6 +80,7 @@ scale_on() {
 scale_off() {
   set_monitor_scale "$OMANIX_SCALE_REVERT_FACTOR"
   scale_other_monitors_off
+  set_pointer_feel "$OMANIX_SCALE_REVERT_SENSITIVITY" "$OMANIX_SCALE_REVERT_CURSOR_SIZE"
   ln -sf "$WAYBAR_DIR/config-1x.json" "$WAYBAR_DIR/config"
   ln -sf "$WAYBAR_DIR/style-1x.css" "$WAYBAR_DIR/style.css"
   refresh_waybar
