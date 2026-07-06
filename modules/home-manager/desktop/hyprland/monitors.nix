@@ -25,7 +25,7 @@ let
   );
 
   explicitMonitorLines = lib.filter (
-    mon: mon.resolution != null || mon.refreshRate != null
+    mon: mon.resolution != null || mon.refreshRate != null || mon.position != null || mon.disabled
   ) cfg.monitors;
 
   mkMonitorSpec =
@@ -34,14 +34,16 @@ let
       res = if mon.resolution != null then mon.resolution else "highres";
       rate = if mon.refreshRate != null then "@${toString mon.refreshRate}" else "";
       scale = toString cfg.monitor.scale;
+      position = if mon.position != null then mon.position else "auto";
     in
     {
       _args = [
         (mkLua ''{
           output = "${mon.name}",
           mode = "${res}${rate}",
-          position = "auto",
+          position = "${position}",
           scale = "${scale}",
+          disabled = ${if mon.disabled then "true" else "false"},
         }'')
       ];
     };
@@ -68,10 +70,42 @@ in
             description = "Override refresh rate in Hz (e.g., 144). Null = use Hyprland preferred.";
             example = 144;
           };
+          position = lib.mkOption {
+            type = lib.types.nullOr lib.types.str;
+            default = null;
+            description = ''
+              Explicit monitor position (e.g., "0x0"). Null = "auto" (Hyprland
+              lays out monitors automatically in declaration order).
+
+              Note that ALL monitors using "auto" (i.e. every monitor with this
+              left null) are re-flowed together whenever any monitor's enabled
+              state or mode changes — for example, a script that temporarily
+              disables/enables an unrelated output (see
+              `omanix.sunshine.dummyDisplay`) can silently shift every
+              "auto"-positioned monitor to a new position. If you use any
+              feature that toggles monitors at runtime, set explicit positions
+              here for your real monitors so they stay put.
+            '';
+            example = "0x0";
+          };
           workspaceCount = lib.mkOption {
             type = lib.types.int;
             default = 5;
             description = "Number of workspaces for this monitor (default: 5).";
+          };
+          disabled = lib.mkOption {
+            type = lib.types.bool;
+            default = false;
+            description = ''
+              Start this monitor disabled at boot. Use for an output that
+              should be completely inert during normal local use — for
+              example, a dummy plug used only by
+              `omanix.sunshine.dummyDisplay`, so it's never reachable via
+              workspace switching or the mouse until that feature's prep-cmd
+              explicitly enables it. Still needs a `workspaceCount` entry
+              here so its workspace range is reserved and doesn't collide
+              with another monitor's, even while disabled.
+            '';
           };
         };
       }
@@ -82,14 +116,20 @@ in
       Each monitor gets its own set of workspaces (1-5 by default).
       Press Super+1-5 to access workspaces on the currently focused monitor.
 
-      Setting resolution or refreshRate generates an explicit Hyprland monitor
-      line for that display. Monitors without these set fall through to the
-      catch-all line in visuals.nix (highres, auto scale).
+      Setting resolution, refreshRate, or position generates an explicit
+      Hyprland monitor line for that display. Monitors without any of these
+      set fall through to the catch-all line in visuals.nix (highres, auto
+      scale, auto position).
+
+      Set explicit positions if you use any feature that toggles monitors at
+      runtime (e.g. `omanix.sunshine.dummyDisplay`), since Hyprland's "auto"
+      position re-flows every auto-positioned monitor whenever any monitor's
+      state changes.
 
       Example:
         omanix.monitors = [
-          { name = "DP-2";     resolution = "2560x1440"; refreshRate = 144; }
-          { name = "HDMI-A-2"; resolution = "2560x1440"; refreshRate = 144; }
+          { name = "DP-2";     resolution = "2560x1440"; refreshRate = 144; position = "0x0"; }
+          { name = "HDMI-A-2"; resolution = "2560x1440"; refreshRate = 144; position = "2560x0"; }
         ];
     '';
   };

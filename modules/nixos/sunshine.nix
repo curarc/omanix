@@ -6,6 +6,7 @@
 }:
 let
   cfg = config.omanix;
+  omanixLib = import ../../lib { inherit lib; };
 
   toggleScript = pkgs.writeShellApplication {
     name = "omanix-toggle-sunshine";
@@ -82,35 +83,69 @@ let
   ) cfg.sunshine.allowedIps;
 
   scaledCfg = cfg.sunshine.scaledDesktop;
+  dummyCfg = cfg.sunshine.dummyDisplay;
 
-  # omanix-scale (pkgs/omanix-scripts/src/omanix-scale.sh) owns BOTH the
-  # Hyprland monitor scale change (via `hyprctl eval hl.monitor{...}` — see
-  # its own comments for why that specific form is required with the Lua
-  # config parser, and why the command must be double-quote-wrapped since
-  # Sunshine hands prep-cmd straight to boost::process::child with no shell
-  # in between) and the waybar/walker/foot config swap. Previously this
-  # module ran the hyprctl command directly and omanix-scale ran the rest
-  # separately — which let a menu-triggered toggle change waybar/walker/foot's
-  # sizing tables (tuned for a 2x compositor scale) WITHOUT the compositor
-  # scale itself changing, shrinking the UI instead of growing it. Now there
-  # is exactly one code path for "scale up"/"scale down".
+  # Default position and env-string derivation are shared with the
+  # home-manager bridge (modules/home-manager/scripts/default.nix) via
+  # lib/dummy-display.nix, so the Sunshine-triggered instance and the
+  # menu-triggered instance can never compute a different default.
+  dummyPosition = omanixLib.dummyDisplay.resolvePosition {
+    position = dummyCfg.position;
+    realMonitors = dummyCfg.realMonitors;
+  };
+
+  dummyName = if dummyCfg.name != null then dummyCfg.name else "Desktop (${dummyCfg.connector})";
+
+  dummyRealMonitorsEnv = omanixLib.dummyDisplay.realMonitorsEnv dummyCfg.realMonitors;
+
+  # omanix-scale (pkgs/omanix-scripts/src/omanix-scale.sh) owns both the
+  # scaledDesktop compositor-scale toggle (--on/--off) and the dummyDisplay
+  # monitor-swap toggle (--dummy-on/--dummy-off) — see the script's own
+  # comments for why hyprctl eval hl.monitor{...}/hl.config{...} (not
+  # `hyprctl keyword`) is required with this Lua config parser, why prep-cmd
+  # commands must be double-quote-wrapped (Sunshine hands prep-cmd straight to
+  # boost::process::child with no shell in between), and the safety-critical
+  # monitor-enable/disable ordering for dummyDisplay.
   #
-  # `pkgs.omanix-scripts` (the bare overlay package) has no scaledDesktop
-  # values baked in — those are only injected by the home-manager module
-  # (modules/home-manager/scripts/default.nix, via osConfig) for the
-  # omanix-menu-triggered instance. Build our own override here from the same
-  # NixOS-level scaledCfg so the Sunshine-triggered instance matches it
-  # exactly, without reaching into home-manager's config from a NixOS module.
+  # `pkgs.omanix-scripts` (the bare overlay package) has no scaledDesktop/
+  # dummyDisplay values baked in — those are only injected by the
+  # home-manager module (modules/home-manager/scripts/default.nix, via
+  # osConfig) for the omanix-menu-triggered instance. Build our own override
+  # here from the same NixOS-level cfg so the Sunshine-triggered instance
+  # matches it exactly, without reaching into home-manager's config from a
+  # NixOS module.
+  #
+  # Extends the SAME omanix-scripts override/binary used for scaledDesktop
+  # above (one package, one `omanix-scale` binary, two independent toggle-flag
+  # surfaces: --on/--off and --dummy-on/--dummy-off) rather than a second
+  # derivation, since both features wrap the exact same script.
+  # `monitor`/`mode`/`connector` etc. have no defaults (they're required,
+  # host-specific values) — accessing them throws if the option was never
+  # set. Both scaledCfg and dummyCfg are guarded by their own `enable` flag
+  # here (not by Nix laziness) so that enabling ONLY one of the two features
+  # never forces the other's unset required options. Previously this relied
+  # on laziness (omanixScaleBin was only referenced from inside
+  # `lib.optionals scaledCfg.enable [...]`), which broke once dummyDisplayApp
+  # also started referencing the same shared omanixScaleBin/omanixScaleScripts.
   omanixScaleScripts = pkgs.omanix-scripts.override {
-    scaledDesktopMonitor = scaledCfg.monitor;
-    scaledDesktopMode = scaledCfg.mode;
-    scaledDesktopPosition = scaledCfg.position;
-    scaledDesktopScale = scaledCfg.scale;
-    scaledDesktopRevertScale = scaledCfg.revertScale;
-    scaledDesktopSensitivity = scaledCfg.sensitivity;
-    scaledDesktopRevertSensitivity = scaledCfg.revertSensitivity;
-    scaledDesktopCursorSize = toString scaledCfg.cursorSize;
-    scaledDesktopRevertCursorSize = toString scaledCfg.revertCursorSize;
+    scaledDesktopMonitor = if scaledCfg.enable then scaledCfg.monitor else "";
+    scaledDesktopMode = if scaledCfg.enable then scaledCfg.mode else "";
+    scaledDesktopPosition = if scaledCfg.enable then scaledCfg.position else "";
+    scaledDesktopScale = if scaledCfg.enable then scaledCfg.scale else "";
+    scaledDesktopRevertScale = if scaledCfg.enable then scaledCfg.revertScale else "";
+    scaledDesktopSensitivity = if scaledCfg.enable then scaledCfg.sensitivity else "";
+    scaledDesktopRevertSensitivity = if scaledCfg.enable then scaledCfg.revertSensitivity else "";
+    scaledDesktopCursorSize = if scaledCfg.enable then toString scaledCfg.cursorSize else "";
+    scaledDesktopRevertCursorSize = if scaledCfg.enable then toString scaledCfg.revertCursorSize else "";
+    dummyDisplayConnector = if dummyCfg.enable then dummyCfg.connector else "";
+    dummyDisplayMode = if dummyCfg.enable then dummyCfg.mode else "";
+    dummyDisplayPosition = if dummyCfg.enable then dummyPosition else "";
+    dummyDisplayScale = if dummyCfg.enable then dummyCfg.scale else "";
+    dummyDisplaySensitivity = if dummyCfg.enable then dummyCfg.sensitivity else "";
+    dummyDisplayRevertSensitivity = if dummyCfg.enable then dummyCfg.revertSensitivity else "";
+    dummyDisplayCursorSize = if dummyCfg.enable then toString dummyCfg.cursorSize else "";
+    dummyDisplayRevertCursorSize = if dummyCfg.enable then toString dummyCfg.revertCursorSize else "";
+    dummyDisplayRealMonitors = if dummyCfg.enable then dummyRealMonitorsEnv else "";
   };
   # Absolute path: the Sunshine user service forces PATH=null, so prep-cmd
   # children can't resolve binaries from PATH.
@@ -153,11 +188,28 @@ let
     image-path = "desktop.png";
   };
 
+  # Streams a dedicated dummy-plug output instead of a real monitor — see
+  # omanix.sunshine.dummyDisplay's description for the full rationale (aspect
+  # ratio mismatch / letterboxing). No `output_name` Sunshine setting needed:
+  # the prep-cmd disables every real monitor and enables only the dummy plug,
+  # so Sunshine's Wayland capture auto-selects the sole enabled output.
+  dummyDisplayApp = {
+    name = dummyName;
+    image-path = "desktop.png";
+    prep-cmd = [
+      {
+        do = "${omanixScaleBin} --dummy-on";
+        undo = "${omanixScaleBin} --dummy-off";
+      }
+    ];
+  };
+
   sunshineApps =
     lib.optionals scaledCfg.enable [
       scaledDesktopApp
       nativeDesktopApp
     ]
+    ++ lib.optionals dummyCfg.enable [ dummyDisplayApp ]
     ++ cfg.sunshine.extraApps;
 in
 {
