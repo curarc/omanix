@@ -200,10 +200,6 @@ let
         OMANIX_SCREENSAVER_LOGO = screensaverLogo;
         OMANIX_MENU_WIDTH = menuWidth;
         OMANIX_MENU_MAX_HEIGHT = menuMaxHeight;
-        # Only used to decide whether to show the "Toggle Dummy Display"
-        # System-menu entry at all — empty when dummyDisplay isn't
-        # configured. The actual toggle logic lives in omanix-scale.
-        OMANIX_DUMMY_DISPLAY_CONNECTOR = dummyDisplayConnector;
       };
       selfPath = true;
     }

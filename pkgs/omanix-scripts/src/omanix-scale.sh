@@ -3,6 +3,7 @@
 STATE_FILE="${XDG_RUNTIME_DIR:-/tmp}/omanix-scale-active"
 OTHER_MONITORS_STATE="${XDG_RUNTIME_DIR:-/tmp}/omanix-scale-other-monitors"
 DUMMY_STATE_FILE="${XDG_RUNTIME_DIR:-/tmp}/omanix-dummy-display-active"
+DUMMY_HIDDEN_WINDOWS_STATE="${XDG_RUNTIME_DIR:-/tmp}/omanix-dummy-display-hidden-windows"
 WAYBAR_DIR="${XDG_CONFIG_HOME:-$HOME/.config}/waybar"
 
 # Settle delay between monitor-state hyprctl calls in the dummy-display
@@ -16,18 +17,38 @@ refresh_waybar() {
   pkill -SIGUSR2 waybar 2>/dev/null
 }
 
+# Full systemd restart, not refresh_waybar's SIGUSR2. SIGUSR2 only tells a
+# running waybar process to re-read its config content — it doesn't tear
+# down and recreate the per-monitor bar windows waybar keeps internally. For
+# scaledDesktop (scale_on/off) that's fine, since it only rescales a monitor
+# that was already there. dummyDisplay actually adds/removes a monitor, and
+# SIGUSR2 alone can leave a stale bar window from a now-disabled monitor
+# bleeding into whatever's left — observed as a disabled monitor's own
+# workspace icons appearing spliced into the streamed monitor's bar. A full
+# restart guarantees waybar re-queries the compositor's current monitor list
+# from scratch and creates exactly one clean bar window per active monitor.
+restart_waybar() {
+  systemctl --user restart waybar.service 2>/dev/null
+}
+
 # Waybar/walker/foot's sizing tables assume a specific compositor scale (see
 # waybar.nix's mkBarHeight/mkFontSize: "1" -> normal size, anything else ->
 # the 2x-tuned variant). Shared by both scaledDesktop (scale_on/off) and
 # dummyDisplay (dummy_display_on/off) so the two toggles can never disagree
-# about which variant is correct for a given scale value.
+# about which variant is correct for a given scale value. "$2" selects
+# refresh_waybar (SIGUSR2, cheap, sufficient when the monitor list itself
+# isn't changing) vs restart_waybar (see above) — default is refresh.
 apply_waybar_variant() {
-  local scale="$1" variant
+  local scale="$1" restart="${2:-}" variant
   variant="2x"
   [[ "$scale" == "1" ]] && variant="1x"
   ln -sf "$WAYBAR_DIR/config-${variant}.json" "$WAYBAR_DIR/config"
   ln -sf "$WAYBAR_DIR/style-${variant}.css" "$WAYBAR_DIR/style.css"
-  refresh_waybar
+  if [[ "$restart" == "restart" ]]; then
+    restart_waybar
+  else
+    refresh_waybar
+  fi
 }
 
 set_monitor_scale() {
@@ -142,6 +163,59 @@ wait_for_monitor_state() {
   sleep 1
 }
 
+# Disabling a real monitor doesn't destroy the workspaces that still have
+# windows open on it — Hyprland has to give them a new home, and since the
+# dummy connector is the only monitor left enabled at that point, it
+# reassigns those occupied workspaces (and their windows) onto the dummy
+# display directly. That means anything left open on a real monitor becomes
+# visible AND reachable on the streamed display — observed as another
+# monitor's own workspace icons and actual window content bleeding into the
+# stream. Moving each window to a per-monitor special workspace (hidden,
+# unreachable via normal workspace switching) before disabling the monitor
+# avoids this; moving them back on disconnect restores exactly what was
+# there. Uses `hl.dsp.window.move({ window = 'address:0x...', workspace =
+# 'special:...' })`, confirmed live — NOT `hl.window.move` (that path doesn't
+# exist; window/workspace dispatchers live under hl.dsp, same as hl.monitor).
+hide_windows_on_monitor() {
+  local monitor_name="$1" monitor_id
+  monitor_id=$(hyprctl monitors -j | jq -r --arg n "$monitor_name" '.[] | select(.name == $n) | .id')
+  [[ -n "$monitor_id" ]] || return 0
+  hyprctl clients -j | jq -c --argjson id "$monitor_id" '.[] | select(.monitor == $id)' | while read -r client; do
+    local address ws
+    address=$(jq -r '.address' <<<"$client")
+    ws=$(jq -r '.workspace.name' <<<"$client")
+    echo "$address|$ws" >>"$DUMMY_HIDDEN_WINDOWS_STATE"
+    hyprctl eval "hl.dispatch(hl.dsp.window.move({ window = 'address:$address', workspace = 'special:omanixdummyhidden_$monitor_name', follow = false }))"
+  done
+}
+
+restore_hidden_windows() {
+  [[ -f "$DUMMY_HIDDEN_WINDOWS_STATE" ]] || return 0
+  while IFS='|' read -r address ws; do
+    [[ -n "$address" ]] || continue
+    # Retries a few times with a short delay: right after a real monitor is
+    # re-enabled, its workspaces may not be fully recreated yet, and moving
+    # a window into a not-yet-existent workspace fails silently (observed
+    # live: the monitor re-enabled first in the loop above consistently
+    # failed to restore, while one re-enabled later — more settled by the
+    # time this ran — succeeded). Also covers a window having been closed
+    # while hidden, in which case every retry harmlessly no-ops.
+    local tries=0
+    while (( tries < 4 )); do
+      local clients_json
+      clients_json=$(hyprctl clients -j)
+      # Window closed while hidden — nothing left to restore.
+      jq -e --arg a "$address" '.[] | select(.address == $a)' <<<"$clients_json" >/dev/null 2>&1 || break
+      # Already restored (moved out of the hidden special workspace) — done.
+      jq -e --arg a "$address" '.[] | select(.address == $a and (.workspace.name | startswith("special:omanixdummyhidden") | not))' <<<"$clients_json" >/dev/null 2>&1 && break
+      hyprctl eval "hl.dispatch(hl.dsp.window.move({ window = 'address:$address', workspace = '$ws', follow = false }))" 2>/dev/null
+      sleep 0.5
+      (( tries++ ))
+    done
+  done <"$DUMMY_HIDDEN_WINDOWS_STATE"
+  rm -f "$DUMMY_HIDDEN_WINDOWS_STATE"
+}
+
 # Orchestrates which monitors are enabled so Sunshine's Wayland capture has
 # exactly one candidate output (the dummy plug) to auto-select — no
 # `output_name` override needed, confirmed Sunshine picks whichever monitor
@@ -167,7 +241,12 @@ wait_for_monitor_state() {
 # apply_waybar_variant below is called with the dummy connector's OWN scale
 # on connect (that's what's actually rendered on the streamed monitor,
 # unlike scaledDesktop where a single real monitor is both scaled and
-# rendered), and with the real monitors' scale on disconnect.
+# rendered), and with the real monitors' scale on disconnect. Deliberately
+# called AFTER the monitor topology has fully settled (real monitors already
+# disabled on connect / already re-enabled on disconnect), with the "restart"
+# variant, not refresh_waybar's SIGUSR2 — restarting waybar while monitors
+# are still mid-transition would just recreate the same stale-bar-window
+# problem restart_waybar exists to fix.
 dummy_display_on() {
   [[ -n "$OMANIX_DUMMY_DISPLAY_CONNECTOR" ]] || return 0
 
@@ -176,14 +255,20 @@ dummy_display_on() {
   sleep "$DUMMY_SETTLE_SECONDS"
 
   set_pointer_feel "$OMANIX_DUMMY_DISPLAY_SENSITIVITY" "$OMANIX_DUMMY_DISPLAY_CURSOR_SIZE"
-  apply_waybar_variant "$OMANIX_DUMMY_DISPLAY_SCALE"
 
+  : > "$DUMMY_HIDDEN_WINDOWS_STATE"
   while IFS='|' read -r name mode position scale; do
     [[ -n "$name" ]] || continue
+    # Hide BEFORE disabling — once the monitor is disabled, Hyprland will
+    # have already reassigned its occupied workspaces elsewhere, which is
+    # exactly the bleed-through this is meant to prevent.
+    hide_windows_on_monitor "$name"
     hyprctl eval "hl.monitor({ output = '$name', disabled = true })"
     wait_for_monitor_state "$name" false
     sleep "$DUMMY_SETTLE_SECONDS"
   done <<< "$OMANIX_DUMMY_DISPLAY_REAL_MONITORS"
+
+  apply_waybar_variant "$OMANIX_DUMMY_DISPLAY_SCALE" restart
 
   touch "$DUMMY_STATE_FILE"
   [[ -t 0 ]] || notify-send "Dummy Display" "Streaming display enabled"
@@ -208,15 +293,22 @@ dummy_display_off() {
     sleep "$DUMMY_SETTLE_SECONDS"
   done <<< "$OMANIX_DUMMY_DISPLAY_REAL_MONITORS"
 
+  # Real monitors are back and their workspaces exist again — safe to move
+  # windows back into them now.
+  restore_hidden_windows
+
   set_pointer_feel "$OMANIX_DUMMY_DISPLAY_REVERT_SENSITIVITY" "$OMANIX_DUMMY_DISPLAY_REVERT_CURSOR_SIZE"
-  # Real monitors' own scale (just restored above) drives which waybar
-  # variant is correct locally — not a hardcoded "1x", since a host could
-  # run its real monitors scaled too. All real monitors normally share the
-  # same local desktop scale, so the first one's value is representative.
-  apply_waybar_variant "$first_real_scale"
 
   hyprctl eval "hl.monitor({ output = '$OMANIX_DUMMY_DISPLAY_CONNECTOR', disabled = true })"
   wait_for_monitor_state "$OMANIX_DUMMY_DISPLAY_CONNECTOR" false
+
+  # Real monitors' own scale (restored above) drives which waybar variant is
+  # correct locally — not a hardcoded "1x", since a host could run its real
+  # monitors scaled too. All real monitors normally share the same local
+  # desktop scale, so the first one's value is representative. Called last,
+  # after the dummy connector is fully disabled, for the same "topology must
+  # be settled first" reason as dummy_display_on above.
+  apply_waybar_variant "$first_real_scale" restart
 
   rm -f "$DUMMY_STATE_FILE"
   [[ -t 0 ]] || notify-send "Dummy Display" "Streaming display disabled"

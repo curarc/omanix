@@ -136,15 +136,32 @@ you're extending this feature or debugging it:
    at runtime, unlike hazard #2 above — see the boot-time section above.
    This is a strictly harder failure than the DRM stall, since even
    `hyprctl reload` can't override a kernel force state.
+4. **Disabling a monitor with open windows on it doesn't destroy those
+   windows or their workspaces** — Hyprland reassigns them onto whatever
+   monitor is still enabled, which is the dummy plug. Left unhandled, this
+   means anything open on a real monitor becomes visible AND reachable on
+   the streamed display (observed live: another monitor's own workspace
+   icons and actual window content bleeding into the stream). Fixed by
+   moving every window on a real monitor into a per-monitor Hyprland special
+   workspace (`special:omanixdummyhidden_<name>`, hidden and unreachable via
+   normal workspace switching) before disabling it, and moving each back to
+   its recorded original workspace on disconnect. Uses
+   `hl.dsp.window.move({ window = 'address:0x...', workspace = ... })` — not
+   `hl.window.move`, which doesn't exist; window/workspace dispatchers live
+   under `hl.dsp`, same as `hl.monitor`. Restoring right after a real
+   monitor is re-enabled can race that monitor's workspaces not being fully
+   recreated yet — the restore path retries a few times with a short delay
+   to cover this.
 
 ## Testing without a live Moonlight connection
 
-Use the "Toggle Dummy Display" entry in the System menu (`Super+Alt+Space` →
-System) to manually toggle the feature and confirm it works before ever
-relying on it during a real streaming session — this is recoverable from the
-keyboard if something goes wrong, whereas a mid-stream failure isn't.
+There is deliberately no System-menu entry for this — enabling it disables
+your real monitors, and since the dummy plug has no physical screen, you'd
+have no display at all until you either blindly navigate back or SSH in from
+another machine.
 
-Or from a terminal:
+To test manually anyway (e.g. over SSH, or accepting that risk from the
+keyboard), run directly from a terminal:
 
 ```bash
 omanix-scale --dummy-on

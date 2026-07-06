@@ -123,28 +123,12 @@ show_system_menu() {
     SCALE_LABEL="󰍹  Enable UI Scale"
   fi
 
-  # Only offer this entry when omanix.sunshine.dummyDisplay is actually
-  # configured (OMANIX_DUMMY_DISPLAY_CONNECTOR non-empty) — most Omanix users
-  # don't have a dummy plug, so the entry would otherwise be a dead option in
-  # every menu. Lets you test the toggle manually (see it work/fail from the
-  # keyboard, recoverable) before ever wiring it into a live Sunshine session.
-  DUMMY_DISPLAY_ITEM=""
-  if [[ -n "$OMANIX_DUMMY_DISPLAY_CONNECTOR" ]]; then
-    if [[ -f "${XDG_RUNTIME_DIR:-/tmp}/omanix-dummy-display-active" ]]; then
-      DUMMY_DISPLAY_ITEM="\n󰹑  Disable Dummy Display"
-    else
-      DUMMY_DISPLAY_ITEM="\n󰹑  Enable Dummy Display"
-    fi
-  fi
-
-  CHOICE=$(menu_cmd "System" "󰌾  Lock\n󱄄  Screensaver\n$IDLE_LABEL\n$SCALE_LABEL$DUMMY_DISPLAY_ITEM\n󰗽  Logout\n󰒲  Suspend\n󰜉  Restart\n󰐥  Shutdown")
+  CHOICE=$(menu_cmd "System" "󰌾  Lock\n󱄄  Screensaver\n$IDLE_LABEL\n$SCALE_LABEL\n󰗽  Logout\n󰒲  Suspend\n󰜉  Restart\n󰐥  Shutdown")
   case "$CHOICE" in
     *"Inhibit"*)              omanix-toggle-idle --off ;;
     *"Enable H"*)             omanix-toggle-idle --on ;;
     *"Disable UI Scale"*)     omanix-scale --off ;;
     *"Enable UI Scale"*)      omanix-scale --on ;;
-    *"Disable Dummy Display"*) omanix-scale --dummy-off ;;
-    *"Enable Dummy Display"*)  omanix-scale --dummy-on ;;
     *Lock*)             omanix-lock-screen ;;
     *Screensaver*)      omanix-screensaver ${OMANIX_SCREENSAVER_LOGO:+--logo "$OMANIX_SCREENSAVER_LOGO"} ;;
     *Logout*)           omanix-cmd-logout ;;
