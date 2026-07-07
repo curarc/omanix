@@ -46,4 +46,52 @@
       color15 = "#acb0d0";
     };
   };
+
+  catppuccin-mocha = {
+    meta = {
+      name = "Catppuccin Mocha";
+      slug = "catppuccin-mocha";
+      icon_theme = "Yaru-purple";
+    };
+
+    assets = {
+      wallpapers = [
+        ../assets/wallpapers/catppuccin/1-nixos-logo-catppuccin.jpg
+        ../assets/wallpapers/catppuccin/2-ship.jpg
+        ../assets/wallpapers/catppuccin/3-hollow-knight.png
+      ];
+    };
+
+    bat = {
+      name = "Catppuccin Mocha";
+      url = "https://raw.githubusercontent.com/catppuccin/bat/main/themes/Catppuccin%20Mocha.tmTheme";
+      sha256 = "sha256-OVVm8IzrMBuTa5HAd2kO+U9662UbEhVT8gHJnCvUqnc=";
+    };
+
+    colors = {
+      background = "#1e1e2e";
+      foreground = "#cdd6f4";
+      accent = "#cba6f7";
+      cursor = "#f5e0dc";
+      selection_foreground = "#cdd6f4";
+      selection_background = "#45475a";
+      color0 = "#45475a";
+      color1 = "#f38ba8";
+      color2 = "#a6e3a1";
+      color3 = "#f9e2af";
+      color4 = "#89b4fa";
+      color5 = "#f5c2e7";
+      color6 = "#94e2d5";
+      color7 = "#bac2de";
+      color8 = "#585b70";
+      color9 = "#f38ba8";
+      color10 = "#a6e3a1";
+      color11 = "#f9e2af";
+      color12 = "#89b4fa";
+      color13 = "#f5c2e7";
+      color14 = "#94e2d5";
+      color15 = "#cdd6f4";
+    };
+  };
+
 }
