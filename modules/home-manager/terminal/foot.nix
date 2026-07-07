@@ -33,6 +33,25 @@ in
     '';
   };
 
+  options.omanix.terminal.dummyDisplayFontSize = lib.mkOption {
+    type = lib.types.int;
+    default = mkFontSize "2";
+    description = ''
+      Font size (pt) new foot windows use while
+      `omanix.sunshine.dummyDisplay` is active, e.g. during a MacBook
+      streaming session. Same mechanism and same caveat as
+      `scaledFontSize` above — only affects NEW windows opened while
+      streaming, gated on a separate state file so the two features'
+      toggles can never disagree. Defaults to the same value as
+      `scaledFontSize` (both represent "font size while the compositor
+      renders at 2x"), independently overridable.
+
+      This never changes your host's normal local font size — it only
+      applies while actively streaming to the dummy display, and reverts
+      automatically the moment you disconnect.
+    '';
+  };
+
   config = lib.mkIf (cfg.emulator == "foot") {
     programs.foot = {
       enable = true;

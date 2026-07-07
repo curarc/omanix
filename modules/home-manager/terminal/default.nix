@@ -17,11 +17,17 @@ let
   # window (only SIGUSR1/2, for the color theme) — see
   # modules/home-manager/terminal/foot.nix. So the scaled font only applies
   # to NEW windows, via a CLI override on launch, gated on the same state
-  # file omanix-scale (runtime Moonlight UI-scale toggle) uses. Revisit if
-  # foot ever gains a live font-resize API.
+  # files omanix-scale (runtime Moonlight UI-scale toggle) uses for its two
+  # independent toggles — scaledDesktop and dummyDisplay. Checked as a
+  # chained if/elif, not two independent ifs, since only one can plausibly
+  # be active at once and this avoids ever appending -o main.font twice
+  # (foot uses the last one, but no reason to rely on that). Revisit if foot
+  # ever gains a live font-resize API.
   scaledFootArgs = lib.optionalString (cfg.emulator == "foot") ''
     if [[ -f "''${XDG_RUNTIME_DIR:-/tmp}/omanix-scale-active" ]]; then
       ARGS+=(-o "main.font=${config.omanix.font}:size=${toString cfg.scaledFontSize}")
+    elif [[ -f "''${XDG_RUNTIME_DIR:-/tmp}/omanix-dummy-display-active" ]]; then
+      ARGS+=(-o "main.font=${config.omanix.font}:size=${toString cfg.dummyDisplayFontSize}")
     fi
   '';
 
