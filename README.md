@@ -15,7 +15,7 @@ A complete Hyprland desktop out of the box:
 - **Editor** - Neovim via LazyVim with per-language support you opt into
 - **Notifications** - Mako with Do Not Disturb mode
 - **Lock Screen** - Hyprlock with themed clock and wallpaper blur
-- **Idle Management** - Hypridle with screensaver, dimming, locking, DPMS, and suspend — all configurable
+- **Idle Management** - Hypridle with screensaver, dimming, locking, DPMS, and suspend, all configurable
 - **Screenshots** - Region/window/fullscreen capture via grim + slurp + Satty editor
 - **Screen Recording** - wl-screenrec with VAAPI hardware encoding and optional audio
 - **Theming** - Declarative themes that propagate to every component (terminal, bar, lock screen, notifications, browser chrome, btop, bat, Walker, SwayOSD)
@@ -31,11 +31,21 @@ Since NixOS is a fundamentally different paradigm from Arch, some things work di
 - **Everything is a module option.** Apps, languages, visual tweaks, and idle behaviour are all configurable through typed NixOS/Home Manager options.
 - **wl-screenrec instead of gpu-screen-recorder.** Omanix records the screen with wl-screenrec (Hyprland's screencopy + VAAPI hardware encoding) for a simpler setup. There is no webcam overlay.
 
-## Quick Start
+## How It Works (Read This First)
 
-Add Omanix to your flake inputs, import both modules, and rebuild:
+If you're new to NixOS, here's the mental model for using Omanix. It's different from installing an app. Omanix is a set of modules you pull into your own system configuration.
+
+**1. Install NixOS the normal way.**
+Install NixOS on your machine using the [official installer](https://nixos.org/download/#nixos-iso). The standard graphical or minimal ISO is fine. Omanix does not have its own installer; it sits on top of a regular NixOS install. Get to a working system that boots first.
+
+**2. Turn your system config into a flake.**
+Omanix is distributed as a [Nix flake](https://nixos.wiki/wiki/Flakes), so your system needs to be flake-based too. Create a `flake.nix` for your machine (typically alongside your `hardware-configuration.nix` in `/etc/nixos/`, or in a Git repo you keep somewhere). This flake *is* your system; it's where all of your configuration lives.
+
+**3. Import Omanix into your flake.**
+Add Omanix as an input and import its two modules (the NixOS module and the Home Manager module), then enable it:
 
 ```nix
+# flake.nix inputs
 omanix = {
   url = "github:T00fy/omanix";
   inputs.nixpkgs.follows = "nixpkgs";
@@ -44,22 +54,45 @@ omanix = {
 ```
 
 ```nix
+# somewhere in your NixOS config
 omanix.enable = true;
 ```
+
+**4. Rebuild.**
 
 ```bash
 sudo nixos-rebuild switch --flake .
 ```
 
-For the full setup walkthrough, see the **[Getting Started](https://t00fy.github.io/omanix/getting-started.html)** guide.
+That gives you the full Omanix desktop. The complete, copy-pasteable flake (inputs, module imports, Home Manager wiring, and user details) is in the **[Getting Started](https://t00fy.github.io/omanix/getting-started.html)** guide. Start there.
+
+## Customizing: Change *Your* Flake, Not Omanix
+
+Because Omanix lives inside **your** flake, that's also where you customize it. You do **not** fork or clone Omanix to make changes.
+
+- **Want a different theme, wallpaper, or idle behaviour?** Set the relevant `omanix.*` option in your own config. See the [Options Reference](https://t00fy.github.io/omanix/nixos.html).
+- **Want extra programs Omanix doesn't ship?** Add them to your own `environment.systemPackages` or `home.packages` in your flake, exactly as you would on any NixOS system. Omanix enabling a Hyprland desktop doesn't stop you from configuring the rest of your machine normally.
+- **Want to tweak something Omanix sets up?** Override it in your own config. Your flake always has the final say.
+
+The rule of thumb: **anything specific to you and your machine goes in your flake.**
+
+### When to Contribute Back Instead
+
+If a change you're making isn't just personal, if it's something that could benefit others in a general, reusable way, consider contributing it to Omanix instead of keeping it in your flake. Good candidates:
+
+- A new theme
+- Support for an optional app that others would plausibly want
+- A bug fix or an improvement to an existing module
+
+In those cases, open a PR (see [Contributing](#contributing)). Keep the personal stuff in your flake; push the reusable stuff upstream.
 
 ## Documentation
 
 Full documentation is available at **[t00fy.github.io/omanix](https://t00fy.github.io/omanix/)**.
 
-- [Getting Started](https://t00fy.github.io/omanix/getting-started.html) — add Omanix to your flake
-- [Configuration Guide](https://t00fy.github.io/omanix/configuration.html) — common patterns with examples
-- [Options Reference](https://t00fy.github.io/omanix/nixos.html) — every `omanix.*` option with types and defaults
+- [Getting Started](https://t00fy.github.io/omanix/getting-started.html) - add Omanix to your flake
+- [Configuration Guide](https://t00fy.github.io/omanix/configuration.html) - common patterns with examples
+- [Options Reference](https://t00fy.github.io/omanix/nixos.html) - every `omanix.*` option with types and defaults
 
 ## Keybindings
 
@@ -67,7 +100,7 @@ Omanix ships with comprehensive keybindings that closely match Omarchy. Rather t
 
 - Press **Super+K** to open the keybindings viewer from within Omanix
 - Press **Super+Alt+Space** to open the main menu, then navigate to **Learn → Keybindings**
-- Refer to the [Omarchy Hotkeys Manual](https://learn.omacom.io/2/the-omarchy-manual/53/hotkeys) — the bindings are nearly identical
+- Refer to the [Omarchy Hotkeys Manual](https://learn.omacom.io/2/the-omarchy-manual/53/hotkeys) - the bindings are nearly identical
 
 ## Themes
 
@@ -119,9 +152,9 @@ Place wallpapers in `assets/wallpapers/your-theme/` and include them in the PR.
 
 Contributions are welcome! Some ideas:
 
-- **New themes** — the easiest way to contribute. Follow the schema above and open a PR.
-- **New optional apps** — add a module under `modules/home-manager/apps/`. Everything should default to `false` (or use `mkEnableOption`) so users opt in explicitly. The module should integrate with the active theme where appropriate.
-- **Bug fixes and improvements** — if you find something that doesn't work or could work better, PRs and issues are appreciated.
-- **Documentation** — improvements to the docs under `docs/` are always helpful.
+- **New themes** - the easiest way to contribute. Follow the schema above and open a PR.
+- **New optional apps** - add a module under `modules/home-manager/apps/`. Everything should default to `false` (or use `mkEnableOption`) so users opt in explicitly. The module should integrate with the active theme where appropriate.
+- **Bug fixes and improvements** - if you find something that doesn't work or could work better, PRs and issues are appreciated.
+- **Documentation** - improvements to the docs under `docs/` are always helpful.
 
 I haven't optimized this for laptops either - because I'm personally not using this on a laptop. Things like battery/power settings are unlikely to be working. PR's addressing this are appreciated
